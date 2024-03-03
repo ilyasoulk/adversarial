@@ -15,8 +15,9 @@ model = AutoModelForCausalLM.from_pretrained("microsoft/phi-1_5",
                                              trust_remote_code=True).to(device)
 tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-1_5",
                                           trust_remote_code=True)
-number_of_tests = 5
+number_of_tests = 1
 successes = 0
+pass_k = 3
 
 for i in range(number_of_tests):
     prompt = test_dataset[i]["prompt"]
@@ -28,21 +29,23 @@ for i in range(number_of_tests):
     eos_token_id = tokenizer.eos_token_id  # Get the end-of-sequence token ID
     outputs = model.generate(**inputs, max_length=250,
                              early_stopping=True, num_beams=8,
-                             eos_token_id=tokenizer.convert_tokens_to_ids(['<|endoftext|>']))
-    generated_solution = tokenizer.batch_decode(outputs)[0]
-    lines = generated_solution.split('\n')
-    lines = lines[:-1]
-    modified_solution = '\n'.join(lines)
-    script = modified_solution + '\n' + test + f'check({entry_point})'
-    print("Script : \n" + script)
-    try:
-        exec(script)
-        print(GREEN + f'{task_id} : OK' + RESET)
-        successes += 1
-    except SyntaxError as e:
-        print(RED + f'{task_id} : FAIL : {e}' + RESET)
-    except AssertionError:
-        print(RED + f'{task_id} : FAIL' + RESET)
+                             eos_token_id=tokenizer.convert_tokens_to_ids(['<|endoftext|>']), num_return_sequences=pass_k)
+    generated_solutions = tokenizer.batch_decode(outputs)
+    for k in range(generated_solutions):
+        lines = generated_solutions[k].split('\n')
+        lines = lines[:-1]
+        modified_solution = '\n'.join(lines)
+        script = modified_solution + '\n' + test + f'check({entry_point})'
+        print("Script : \n" + script)
+        try:
+            exec(script)
+            print(GREEN + f'{task_id} : OK' + RESET)
+            print(f'Passed at k = {k}')
+            successes += 1
+        except SyntaxError as e:
+            print(RED + f'{task_id} : FAIL : {e}' + RESET)
+        except AssertionError:
+            print(RED + f'{task_id} : FAIL' + RESET)
 
 
 success_rate = (successes / number_of_tests) * 100
