@@ -56,19 +56,23 @@ def generate_outputs(test_dataset, model, tokenizer, number_of_tests , pass_k, o
 def run_tests(output_dir):
     for task_id in os.listdir(output_dir):
         task_dir = os.path.join(output_dir, task_id)
-        for file in os.listdir(task_dir):
+        files = os.listdir(task_dir)
+        sorted_files = sorted(files, key=lambda x: int(x.split('_')[-1]))
+        k = 0
+        for file in sorted_files:
             file_path = os.path.join(task_dir, file)
             with open(file_path, "r") as file:
                 solution = file.read()
-                print(file)
-                print(solution)
                 try:
                     exec(solution)
-                    print(f"{GREEN}Test passed{RESET}")
+                    print(f"{GREEN}Test passed at k = {k}{RESET}")
+                    break
                 except SyntaxError as e:
                     print(RED + f'FAIL : {e}' + RESET)
                 except AssertionError:
                     print(RED + f'FAIL' + RESET)
+                finally:
+                    k += 1
 
 
 generate_outputs(test_dataset, model, tokenizer, number_of_tests, pass_k, output_dir)
