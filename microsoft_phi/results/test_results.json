@@ -1,0 +1,52 @@
+[
+    {
+        "task_id": "HumanEval_4",
+        "passed": true,
+        "attempts": 1
+    },
+    {
+        "task_id": "HumanEval_3",
+        "passed": true,
+        "attempts": 1
+    },
+    {
+        "task_id": "HumanEval_2",
+        "passed": false,
+        "attempts": 5
+    },
+    {
+        "task_id": "HumanEval_5",
+        "passed": true,
+        "attempts": 3
+    },
+    {
+        "task_id": "HumanEval_9",
+        "passed": false,
+        "attempts": 5
+    },
+    {
+        "task_id": "HumanEval_0",
+        "passed": true,
+        "attempts": 1
+    },
+    {
+        "task_id": "HumanEval_7",
+        "passed": true,
+        "attempts": 1
+    },
+    {
+        "task_id": "HumanEval_6",
+        "passed": false,
+        "attempts": 5
+    },
+    {
+        "task_id": "HumanEval_1",
+        "passed": false,
+        "attempts": 5
+    },
+    {
+        "task_id": "HumanEval_8",
+        "passed": false,
+        "attempts": 5
+    }
+]
