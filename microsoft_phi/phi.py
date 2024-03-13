@@ -24,9 +24,9 @@ output_directory_name = "generated_outputs"
 output_dir = os.path.join(current_working_directory, output_directory_name)
 os.makedirs(output_dir, exist_ok=True)
 
-number_of_tests = 1
+number_of_tests = 10
 successes = 0
-pass_k = 1
+pass_k = 5
 
 def generate_outputs(test_dataset, model, tokenizer, number_of_tests , pass_k, output_dir):
     print("Starting to generate outputs")
@@ -38,7 +38,7 @@ def generate_outputs(test_dataset, model, tokenizer, number_of_tests , pass_k, o
         inputs = tokenizer(prompt, return_tensors="pt",
                            truncation=True, max_length=512)
         outputs = model.generate(**inputs, max_length=250,
-                             early_stopping=True, num_beams=8,
+                             early_stopping=True, num_beams=5,
                              eos_token_id=tokenizer.convert_tokens_to_ids(['<|endoftext|>']), num_return_sequences=pass_k)
         generated_solutions = tokenizer.batch_decode(outputs)
 
