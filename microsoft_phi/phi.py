@@ -57,6 +57,7 @@ def generate_outputs(test_dataset, model, tokenizer, number_of_tests , pass_k, o
 
 def run_tests(output_dir):
     results = []
+    errors = []
     for task_id in os.listdir(output_dir):
         task_dir = os.path.join(output_dir, task_id)
         files = os.listdir(task_dir)
@@ -74,10 +75,11 @@ def run_tests(output_dir):
                     break
                 except Exception as e:
                     print(RED + f'Unexpected error: {e}' + RESET)
+                    errors.append(e)
                 finally:
                     k += 1
 
-        results.append({"task_id": task_id, "passed": test_passed, "attempts": k})
+        results.append({"task_id": task_id, "passed": test_passed, "attempts": k, "errors": errors})
     results_file_path = os.path.join(output_dir, "test_results.json")
     with open(results_file_path, "w") as json_file:
         json.dump(results, json_file, indent=4)
