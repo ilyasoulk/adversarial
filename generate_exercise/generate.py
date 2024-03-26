@@ -27,7 +27,7 @@ Aim for a variety of difficulties, from beginner to advanced levels, to cater to
 
 prompt = tokenizer(test_2, return_tensors="pt", truncation=True, max_length=1024)
 outputs = model.generate(**prompt, temperature=0.9, do_sample=True,
-                         max_length=500, eos_token_id=tokenizer.convert_tokens_to_ids(['<|endoftext|>']), top_p=0.95)
+                         max_length=500, eos_token_id=, top_p=0.95)
 text = tokenizer.batch_decode(outputs)[0]
 
 print(text)
