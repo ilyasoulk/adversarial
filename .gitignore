@@ -2,6 +2,7 @@ generate_exercise/mixtral_7b/exercises_v2/
 microsoft_phi/result_w_errors/
 microsoft_phi/results
 .idea
+.DS_Store
 
 
 # Byte-compiled / optimized / DLL files
