@@ -1,0 +1,100 @@
+{
+    "categories": [
+        {
+            "name": "Algorithm",
+            "subcategories": [
+                "Sorting",
+                "Searching",
+                "Graph Algorithms",
+                "Dynamic Programming",
+                "Greedy Algorithms",
+                "Backtracking",
+                "Divide and Conquer",
+                "Recursion",
+                "String Algorithms",
+                "Geometric Algorithms"
+            ]
+        },
+        {
+            "name": "Data Structure",
+            "subcategories": [
+                "Arrays",
+                "Linked Lists",
+                "Stacks",
+                "Queues",
+                "Trees",
+                "Graphs",
+                "Hash Tables",
+                "Heaps",
+                "Tries",
+                "Bloom Filters"
+            ]
+        },
+        {
+            "name": "Object-Oriented Programming",
+            "subcategories": [
+                "Inheritance",
+                "Polymorphism",
+                "Encapsulation",
+                "Abstraction",
+                "Interfaces",
+                "Constructors and Destructors",
+                "Exception Handling",
+                "Memory Management",
+                "Design Patterns",
+                "Dependency Injection"
+            ]
+        },
+        {
+            "name": "Recursion",
+            "subcategories": [
+                "Recursive search",
+                "Divide and conquer algorithms",
+                "Recursive sorting techniques",
+                "Recursive tree operations",
+                "Dynamic programming with recursion",
+                "Recursive backtracking",
+                "Memoization strategies",
+                "Tail recursion optimization",
+                "Recursive data structures",
+                "Recursive algorithm conversion"
+            ]
+        },
+        {
+            "name": "Dynamic Programming",
+            "subcategories": [
+                "Introduction to Dynamic Programming",
+                "Memoization vs. Tabulation",
+                "Fibonacci Series",
+                "Knapsack Problem",
+                "Longest Common Subsequence (LCS)",
+                "Longest Increasing Subsequence",
+                "Coin Change Problem",
+                "Rod Cutting Problem",
+                "Minimum Path Sum in a Grid",
+                "Partition Problem",
+                "Matrix Chain Multiplication",
+                "Optimal Binary Search Trees",
+                "Palindrome Partitioning",
+                "Subset Sum Problem",
+                "Edit Distance",
+                "Job Scheduling Problem"
+            ]
+        },
+        {
+            "name": "Functional Programming",
+            "subcategories": [
+                "Immutability",
+                "Pure Functions",
+                "Recursion",
+                "Map, Filter, Reduce",
+                "Currying",
+                "Composition",
+                "Lazy Evaluation",
+                "Monads",
+                "Type Classes",
+                "Algebraic Data Types"
+            ]
+        }
+    ]
+}

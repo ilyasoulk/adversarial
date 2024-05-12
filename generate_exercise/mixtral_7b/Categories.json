@@ -1,0 +1,661 @@
+{
+    "categories": [
+        {
+            "name": "Algorithm",
+            "subcategories": [
+                "Sorting",
+                "Searching",
+                "Graph Algorithms",
+                "Dynamic Programming",
+                "Greedy Algorithms",
+                "Backtracking",
+                "Divide and Conquer",
+                "Recursion",
+                "String Algorithms",
+                "Geometric Algorithms"
+            ]
+        },
+        {
+            "name": "Data Structure",
+            "subcategories": [
+                "Arrays",
+                "Linked Lists",
+                "Stacks",
+                "Queues",
+                "Trees",
+                "Graphs",
+                "Hash Tables",
+                "Heaps",
+                "Tries",
+                "Bloom Filters"
+            ]
+        },
+        {
+            "name": "Object-Oriented Programming",
+            "subcategories": [
+                "Inheritance",
+                "Polymorphism",
+                "Encapsulation",
+                "Abstraction",
+                "Interfaces",
+                "Constructors and Destructors",
+                "Exception Handling",
+                "Memory Management",
+                "Design Patterns",
+                "Dependency Injection"
+            ]
+        },
+        {
+            "name": "Recursion",
+            "subcategories": [
+                "Recursive search",
+                "Divide and conquer algorithms",
+                "Recursive sorting techniques",
+                "Recursive tree operations",
+                "Dynamic programming with recursion",
+                "Recursive backtracking",
+                "Memoization strategies",
+                "Tail recursion optimization",
+                "Recursive data structures",
+                "Recursive algorithm conversion"
+            ]
+        },
+        {
+            "name": "Dynamic Programming",
+            "subcategories": [
+                "Introduction to Dynamic Programming",
+                "Memoization vs. Tabulation",
+                "Fibonacci Series",
+                "Knapsack Problem",
+                "Longest Common Subsequence (LCS)",
+                "Longest Increasing Subsequence",
+                "Coin Change Problem",
+                "Rod Cutting Problem",
+                "Minimum Path Sum in a Grid",
+                "Partition Problem",
+                "Matrix Chain Multiplication",
+                "Optimal Binary Search Trees",
+                "Palindrome Partitioning",
+                "Subset Sum Problem",
+                "Edit Distance",
+                "Job Scheduling Problem"
+            ]
+        },
+        {
+            "name": "Functional Programming",
+            "subcategories": [
+                "Immutability",
+                "Pure Functions",
+                "Recursion",
+                "Map, Filter, Reduce",
+                "Currying",
+                "Composition",
+                "Lazy Evaluation",
+                "Monads",
+                "Type Classes",
+                "Algebraic Data Types"
+            ]
+        },
+        {
+            "name": "State Machines",
+            "subcategories": [
+                "Finite state machines",
+                "State transition testing",
+                "Event-driven programming",
+                "Workflow engines",
+                "State pattern implementation",
+                "State persistence",
+                "Asynchronous state handling",
+                "State machine frameworks",
+                "State machine visualization",
+                "State machine verification"
+            ]
+        },
+        {
+            "name": "Data Filtering and Transformation",
+            "subcategories": [
+                "Data cleansing",
+                "Transformation pipelines",
+                "Data aggregation",
+                "MapReduce operations",
+                "Streaming data processing",
+                "Batch vs. real-time processing",
+                "Data anonymization",
+                "ETL processes",
+                "Data enrichment",
+                "Filter design"
+            ]
+        },
+        {
+            "name": "Regular Expressions",
+            "subcategories": [
+                "Pattern matching",
+                "Text extraction",
+                "Input validation",
+                "Data sanitization",
+                "Search and replace operations",
+                "Advanced grouping",
+                "Efficient regex strategies",
+                "Regex in different programming languages",
+                "Performance tuning",
+                "Regex-based parsing"
+            ]
+        },
+        {
+            "name": "Error Handling",
+            "subcategories": [
+                "Exception management",
+                "Custom exception creation",
+                "Error logging",
+                "Fault tolerance",
+                "Retry mechanisms",
+                "Error reporting interfaces",
+                "Handling external system errors",
+                "Resource cleanup",
+                "Graceful degradation",
+                "Error propagation"
+            ]
+        },
+        {
+            "name": "File I/O",
+            "subcategories": [
+                "Reading and writing text files",
+                "Handling binary files",
+                "File streaming",
+                "File manipulation (copy, move, delete)",
+                "Directory traversal",
+                "File compression",
+                "Metadata extraction",
+                "File encryption and decryption",
+                "File synchronization",
+                "Network file access"
+            ]
+        },
+        {
+            "name": "API Integration",
+            "subcategories": [
+                "REST API consumption",
+                "SOAP web services",
+                "GraphQL APIs",
+                "OAuth integration",
+                "API rate limiting",
+                "Third-party SDKs",
+                "Streaming APIs",
+                "Geolocation services",
+                "Social media API integration",
+                "Payment gateway integration"
+            ]
+        },
+        {
+            "name": "Database Manipulation",
+            "subcategories": [
+                "SQL Queries",
+                "Indexing",
+                "Transactions",
+                "Normalization",
+                "Joins",
+                "Aggregation",
+                "Stored Procedures",
+                "Triggers",
+                "Views",
+                "NoSQL Databases"
+            ]
+        },
+        {
+            "name": "System Design",
+            "subcategories": [
+                "Horizontal Scaling",
+                "Vertical Scaling",
+                "Caching",
+                "Load Balancing",
+                "Microservices",
+                "APIs",
+                "Message Queues",
+                "Data Partitioning",
+                "CDNs",
+                "Containerization"
+            ]
+        },
+        {
+            "name": "Dynamic Programming",
+            "subcategories": [
+                "Introduction to Dynamic Programming",
+                "Memoization vs. Tabulation",
+                "Fibonacci Series",
+                "Knapsack Problem",
+                "Longest Common Subsequence (LCS)",
+                "Longest Increasing Subsequence",
+                "Coin Change Problem",
+                "Rod Cutting Problem",
+                "Minimum Path Sum in a Grid",
+                "Partition Problem",
+                "Matrix Chain Multiplication",
+                "Optimal Binary Search Trees",
+                "Palindrome Partitioning",
+                "Subset Sum Problem",
+                "Edit Distance",
+                "Job Scheduling Problem"
+            ]
+        },
+        {
+            "name": "Graph Algorithms",
+            "subcategories": [
+                "Dijkstra's algorithm",
+                "Bellman-Ford algorithm",
+                "Floyd-Warshall algorithm",
+                "Prim's algorithm",
+                "Kruskal's algorithm",
+                "Topological sort",
+                "Graph coloring",
+                "Network flow problems",
+                "Shortest path problems",
+                "Cycle detection"
+            ]
+        },
+        {
+            "name": "Queue and Stack Operations",
+            "subcategories": [
+                "LIFO and FIFO concepts",
+                "Priority queues",
+                "Circular buffers",
+                "Thread-safe operations",
+                "Queue-based algorithms",
+                "Stack-based calculations",
+                "Implementing queues with stacks",
+                "Queue and stack performance",
+                "Real-world applications",
+                "Concurrency control"
+            ]
+        }, 
+        {
+            "name": "Concurrency",
+            "subcategories": [
+                "Threads",
+                "Locks",
+                "Semaphores",
+                "Condition Variables",
+                "Atomic Operations",
+                "Deadlocks",
+                "Race Conditions",
+                "Thread Pools",
+                "Futures and Promises",
+                "Coroutines"
+            ]
+        },
+        {
+            "name": "System Tools and Scripting",
+            "subcategories": [
+                "Shell Scripting",
+                "Regular Expressions",
+                "Text Processing",
+                "Automation",
+                "Version Control",
+                "Build Tools",
+                "Package Managers",
+                "Continuous Integration",
+                "Containerization",
+                "Infrastructure as Code"
+            ]
+        },
+        {
+            "name": "Web Development",
+            "subcategories": [
+                "HTML/CSS",
+                "JavaScript",
+                "REST APIs",
+                "WebSockets",
+                "Forms and Validation",
+                "Authentication and Authorization",
+                "Cookies and Sessions",
+                "Single Page Applications",
+                "Server-Side Rendering",
+                "Progressive Web Apps"
+            ]
+        },
+        {
+            "name": "Network Programming",
+            "subcategories": [
+                "Sockets",
+                "TCP/IP",
+                "UDP",
+                "DNS",
+                "HTTP/HTTPS",
+                "WebSockets",
+                "Multicasting",
+                "Firewalls",
+                "Network Security",
+                "Load Balancing"
+            ]
+        },
+        {
+            "name": "Software Testing",
+            "subcategories": [
+                "Unit testing",
+                "Integration testing",
+                "Mocking",
+                "Stress testing",
+                "Regression testing",
+                "Black-box testing",
+                "White-box testing",
+                "Automated test scripting",
+                "Test-driven development (TDD)",
+                "Behavior-driven development (BDD)"
+            ]
+        },
+        {
+            "name": "Performance Optimization",
+            "subcategories": [
+                "Algorithm optimization",
+                "Memory usage reduction",
+                "Multithreading",
+                "Database query tuning",
+                "Caching strategies",
+                "Asynchronous programming",
+                "Code refactoring",
+                "Load balancing",
+                "Hardware acceleration",
+                "Software profiling"
+            ]
+        },
+        {
+            "name": "Mathematics",
+            "subcategories": [
+                "Linear Algebra",
+                "Calculus",
+                "Probability and Statistics",
+                "Combinatorics",
+                "Number Theory",
+                "Cryptography",
+                "Geometry",
+                "Trigonometry",
+                "Graph Theory",
+                "Optimization"
+            ]
+        },
+        {
+            "name": "System Testing and Debugging",
+            "subcategories": [
+                "Unit Testing",
+                "Integration Testing",
+                "End-to-End Testing",
+                "Test-Driven Development",
+                "Mocking",
+                "Assertions",
+                "Continuous Integration",
+                "Debugging Tools",
+                "Logging",
+                "Profiling"
+            ]
+        },
+        {
+            "name": "Command Line Interface (CLI)",
+            "subcategories": [
+                "Shell Scripting",
+                "Command Line Arguments",
+                "Pipes and Filters",
+                "Environment Variables",
+                "File I/O",
+                "Process Management",
+                "Signal Handling",
+                "Text Processing",
+                "Regular Expressions",
+                "Command Line Tools"
+            ]
+        },
+        {
+            "name": "Text Processing",
+            "subcategories": [
+                "String Manipulation",
+                "Regular Expressions",
+                "Tokenization",
+                "Parsing",
+                "Text Encoding and Decoding",
+                "Text Compression and Decompression",
+                "Spell Checking",
+                "Natural Language Processing",
+                "Text Classification",
+                "Sentiment Analysis"
+            ]
+        },
+        {
+            "name": "Artificial Intelligence",
+            "subcategories": [
+                "Search Algorithms",
+                "Knowledge Representation",
+                "Reasoning",
+                "Planning",
+                "Natural Language Processing",
+                "Computer Vision",
+                "Robotics",
+                "Machine Learning",
+                "Expert Systems",
+                "Neural Networks"
+            ]
+        },
+        {
+            "name": "Machine Learning",
+            "subcategories": [
+                "Supervised Learning",
+                "Unsupervised Learning",
+                "Reinforcement Learning",
+                "Linear Regression",
+                "Logistic Regression",
+                "Decision Trees",
+                "Random Forests",
+                "Support Vector Machines",
+                "Neural Networks",
+                "Deep Learning"
+            ]
+        },
+        {
+            "name": "Cybersecurity",
+            "subcategories": [
+                "Authentication and Authorization",
+                "Encryption",
+                "Hashing",
+                "Firewalls",
+                "Intrusion Detection and Prevention",
+                "Malware Analysis",
+                "Penetration Testing",
+                "Risk Assessment",
+                "Secure Coding Practices",
+                "Vulnerability Assessment"
+            ]
+        },
+        {
+            "name": "Scientific Computing",
+            "subcategories": [
+                "Numerical Methods",
+                "Linear Algebra",
+                "Optimization",
+                "Differential Equations",
+                "Simulation",
+                "Data Analysis",
+                "Statistical Modeling",
+                "Machine Learning",
+                "High-Performance Computing",
+                "Parallel Computing"
+            ]
+        },
+        {
+            "name": "Distributed Systems",
+            "subcategories": [
+                "Distributed Algorithms",
+                "Consensus Protocols",
+                "Replication",
+                "Sharding",
+                "Partitioning",
+                "Load Balancing",
+                "Fault Tolerance",
+                "Caching",
+                "Messaging",
+                "Microservices"
+            ]
+        },
+        {
+            "name": "Natural Language Processing",
+            "subcategories": [
+                "Text Processing",
+                "Tokenization",
+                "Part-of-Speech Tagging",
+                "Named Entity Recognition",
+                "Sentiment Analysis",
+                "Text Classification",
+                "Text Summarization",
+                "Machine Translation",
+                "Speech Recognition",
+                "Chatbots"
+            ]
+        },
+        {
+            "name": "Image Processing",
+            "subcategories": [
+                "Image Filtering",
+                "Image Segmentation",
+                "Image Enhancement",
+                "Image Restoration",
+                "Image Compression",
+                "Object Detection",
+                "Facial Recognition",
+                "Medical Imaging",
+                "Remote Sensing",
+                "Computer Vision"
+            ]
+        },
+        {
+            "name": "Signal Processing",
+            "subcategories": [
+                "Fourier Analysis",
+                "Wavelet Analysis",
+                "Filter Design",
+                "Signal Detection",
+                "Signal Estimation",
+                "Signal Modulation",
+                "Signal Compression",
+                "Signal Reconstruction",
+                "Noise Reduction",
+                "Signal Enhancement"
+            ]
+        },
+        {
+            "name": "Data Visualization",
+            "subcategories": [
+                "Data Cleaning",
+                "Data Transformation",
+                "Data Aggregation",
+                "Charting",
+                "Graphing",
+                "Mapping",
+                "Dashboarding",
+                "Interactive Visualization",
+                "Storytelling",
+                "Color Theory"
+            ]
+        },
+        {
+            "name": "Compiler Design",
+            "subcategories": [
+                "Lexical Analysis",
+                "Syntax Analysis",
+                "Semantic Analysis",
+                "Intermediate Code Generation",
+                "Code Optimization",
+                "Code Generation",
+                "Linking",
+                "Runtime Systems",
+                "Garbage Collection",
+                "Just-In-Time Compilation"
+            ]
+        },
+        {
+            "name": "Operating Systems",
+            "subcategories": [
+                "Process Management",
+                "Memory Management",
+                "File Systems",
+                "I/O Management",
+                "Device Drivers",
+                "Networking",
+                "Security",
+                "Virtualization",
+                "Kernel Design",
+                "Scheduling"
+            ]
+        },
+        {
+            "name": "Cryptography",
+            "subcategories": [
+                "Symmetric Encryption",
+                "Asymmetric Encryption",
+                "Hash Functions",
+                "Digital Signatures",
+                "Public Key Infrastructure",
+                "Key Exchange",
+                "Secure Communication",
+                "Cryptographic Protocols",
+                "Cryptanalysis",
+                "Quantum Cryptography"
+            ]
+        },
+        {
+            "name": "Information Retrieval",
+            "subcategories": [
+                "Indexing",
+                "Search Algorithms",
+                "Ranking Algorithms",
+                "Query Expansion",
+                "Document Retrieval",
+                "Web Search",
+                "Recommender Systems",
+                "Natural Language Processing",
+                "Text Mining",
+                "Information Extraction"
+            ]
+        },
+        {
+            "name": "Recommender Systems",
+            "subcategories": [
+                "Collaborative Filtering",
+                "Content-Based Filtering",
+                "Hybrid Recommender Systems",
+                "Matrix Factorization",
+                "Neighborhood Methods",
+                "Deep Learning for Recommender Systems",
+                "Evaluation Metrics",
+                "Cold Start Problem",
+                "Explainability",
+                "Bias and Fairness"
+            ]
+        },
+        {
+            "name": "Embedded Systems",
+            "subcategories": [
+                "Microcontrollers",
+                "Real-Time Operating Systems",
+                "Device Drivers",
+                "Interrupts",
+                "Memory Management",
+                "Power Management",
+                "Communication Protocols",
+                "Hardware-Software Interface",
+                "Debugging and Testing",
+                "Safety and Reliability"
+            ]
+        },
+        {
+            "name": "High-Performance Computing",
+            "subcategories": [
+                "Parallel Computing",
+                "Distributed Computing",
+                "Cluster Computing",
+                "Grid Computing",
+                "Cloud Computing",
+                "GPU Computing",
+                "Vector Processing",
+                "Performance Optimization",
+                "Load Balancing",
+                "Fault Tolerance"
+            ]
+        }
+    ]
+}
