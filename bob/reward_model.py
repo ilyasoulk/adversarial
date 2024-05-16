@@ -9,4 +9,21 @@ def reward_model(code, unit_tests):
     The score should take into account both of these factors.
     '''
     # TODO: Implement reward model
-    pass
+    try:
+        compile(code, '<string>', 'exec')
+    except SyntaxError as e:
+        return -1.0, f"Syntax Error: {e}"
+
+    script = code + '\n' + unit_tests
+    try:
+        namespace = {}
+        exec(script, namespace)
+    except RuntimeError as e:
+        return -0.6, f"Runtime Error: {e}"
+
+    try:
+        exec(script, namespace)
+    except AssertionError as e:
+        return -0.3, f"Assertion Error: {e}"
+    
+    return 1.0, "Code snippet passed all unit tests"
