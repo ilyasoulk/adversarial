@@ -8,22 +8,38 @@ def reward_model(code, unit_tests):
     2. Does the code snippet pass all the unit tests ?
     The score should take into account both of these factors.
     '''
-    # TODO: Implement reward model
+    # If the code is empty, return a specific score
+    if code == '':
+        print("Code snippet is empty, parsing failed")
+        return -2
+
+    # Check for syntax errors
     try:
         compile(code, '<string>', 'exec')
     except SyntaxError as e:
-        return -1.0, f"Syntax Error: {e}"
+        print(f"Syntax Error: {e}")
+        return -1.0
 
+    # Combine the code and unit tests into a single script
     script = code + '\n' + unit_tests
-    try:
-        namespace = {}
-        exec(script, namespace)
-    except RuntimeError as e:
-        return -0.6, f"Runtime Error: {e}"
+    namespace = {}
 
+    # Check for NameError and other runtime errors
     try:
         exec(script, namespace)
+    except NameError as e:
+        print(f"Name Error: {e}")
+        return -0.6
+    except RuntimeError as e:
+        print(f"Runtime Error: {e}")
+        return -0.6
     except AssertionError as e:
-        return -0.3, f"Assertion Error: {e}"
-    
-    return 1.0, "Code snippet passed all unit tests"
+        print(f"Assertion Error: {e}")
+        return -0.3
+    except Exception as e:
+        print(f"Other Error: {e}")
+        return -0.4
+
+    # If no exceptions, return a positive score
+    print("Code snippet passed all unit tests")
+    return 1.0
