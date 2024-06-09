@@ -115,7 +115,7 @@ def generate_rejected_solutions(
 
 
 def create_subtopic_query(topic: str, n: int) -> str:
-    return f"""For a Python textbook give me {n} subtopics of {topic}, formatted as an unamed Python list. For example ```python[subtopic_1, subtopic_2 ... subtopic_n]``` 
+    return f"""For a Python textbook give me {n} subtopics of {topic}, formatted as an unamed Python list. For example ```python\n[subtopic_1, subtopic_2 ... subtopic_n]\n``` 
     Just provide the titles and give no explanation.
     Format the result as Python list.
     """
@@ -170,11 +170,12 @@ def create_subtopics(oracle, topic: Topic, n: int, retries: int = 10):
                 num_return_sequences=1,
                 do_sample=True,
             )
-            response = extract_assistant_content(completion[0]["generated_text"])
-            subcategories = extract_list_from_string(response[0])
+            subcategories = extract_list_from_string(
+                completion[0]["generated_text"][-1]["content"]
+            )
             if subcategories == None:
                 print(
-                    f"Generation failed for prompt, retrying {i + 1}/{retries}, error: {e}"
+                    f"Generation failed for prompt, retrying {i + 1}/{retries}, error: List not found"
                 )
                 continue
             result = [Topic(topic=i) for i in subcategories]
