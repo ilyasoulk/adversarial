@@ -114,21 +114,18 @@ def generate_rejected_solutions(
     return dataset
 
 
-def create_subtopic_query(topic: str, n: int) -> str:
+def create_subtopic_query(topic: str, n: int, reference_exercises) -> str:
+    if len(reference_exercises) > 0:
+        return f"""From the given reference coding exercise {reference_exercises}, extract {n} topics, formatted as an unnamed Python list. For example ```python\n[topic_1, topic_2, ... topic_n]\n```
+        Just provide the titles and give no explanation.
+        Format the result as a Python list."""
     return f"""For a Python textbook give me {n} subtopics of {topic}, formatted as an unamed Python list. For example ```python\n[subtopic_1, subtopic_2 ... subtopic_n]\n``` 
     Just provide the titles and give no explanation.
     Format the result as Python list.
     """
 
 
-def create_prompt_query(
-    topic: Topic, profession: str, n: int, reference: str = None
-) -> str:
-    if reference:
-        prefix = f"""
-        Here are some reference exercises where our students are having a hard time :\n{reference}
-        """
-
+def create_prompt_query(topic: Topic, profession: str, n: int) -> str:
     query = f'''
             Create {n} DISTINCT code completion exercise about “{topic.topic}””.  
             Write it for a {profession}. 
@@ -150,9 +147,15 @@ def create_prompt_query(
     return query
 
 
-def create_subtopics(oracle, topic: Topic, n: int, retries: int = 10):
+def create_subtopics(
+    oracle,
+    topic: Topic = Topic(topic="Default"),
+    n: int = 10,
+    retries: int = 10,
+    reference_exercises=[],
+):
     success = False
-    query = create_subtopic_query(topic.topic, n)
+    query = create_subtopic_query(topic.topic, n, reference_exercises)
     result = []
     print(query)
     for i in range(retries):
@@ -213,12 +216,21 @@ def create_dataset(
     oracle_temperature,
     student_max_length,
     student_temperature,
+    reference_exercises=[],
 ):
     subtopics_list = []
-    for topic in topics:
-        subtopics_list.extend(
-            create_subtopics(oracle, Topic(topic=topic), num_subtopics)
-        )
+    if len(reference_exercises) == 0:
+        for topic in topics:
+            subtopics_list.extend(
+                create_subtopics(oracle, Topic(topic=topic), num_subtopics)
+            )
+    else:
+        for exercise in reference_exercises:
+            subtopics_list.extend(
+                create_subtopics(
+                    oracle, Topic(topic=topic), num_subtopics, reference_exercises
+                )
+            )
 
     queries = [
         create_prompt(subtopic, professions, num_exercises)
