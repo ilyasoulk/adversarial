@@ -94,7 +94,7 @@ def generate_rejected_solutions(
             continue
 
         messages = [
-            {"role": "system", "content": "You are a helpful assistant"},
+            # {"role": "system", "content": "You are a helpful assistant"},
             {"role": "user", "content": prompt},
         ]
         completion = student_pipe(
@@ -158,7 +158,7 @@ def create_subtopics(oracle, topic: Topic, n: int, retries: int = 10):
     for i in range(retries):
         try:
             messages = [
-                {"role": "system", "content": "You are a helpful assistant."},
+                # {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": query},
             ]
             completion = oracle(
