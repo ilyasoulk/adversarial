@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from datasets import load_dataset
 import argparse
 from generate_dataset import (
@@ -14,7 +15,6 @@ from transformers import BitsAndBytesConfig, AutoModelForCausalLM
 from trl import DPOTrainer
 from peft import LoraConfig
 from transformers import TrainingArguments
-import heapq
 from datasets import DatasetDict
 import gc
 from multiprocessing import cpu_count
@@ -59,21 +59,28 @@ def apply_chat_template(example, tokenizer, assistant_prefix="<|assistant|>\n"):
     return example
 
 
-def get_hard_exercises(dpo_trainer):
+def get_hard_exercises(dpo_trainer, n_samples):
     data = dpo_trainer.get_train_dataloader()
 
-    exercises_rankings = []
+    exercises = []
+    scores = []
 
     for batch in data:
         recap = dpo_trainer.get_batch_loss_metrics(dpo_trainer.model, batch)
-        exercises_rankings.append((batch["prompt"], recap[1]["rewards/chosen"].item()))
+        exercises.append(batch["prompt"])
+        scores.append(recap[1]["rewards/chosen"].item())
         del recap
         gc.collect()
 
-    hardest_exercises = heapq.nsmallest(
-        4, exercises_rankings, key=lambda x: x[1]
-    )  # If the batch size is 4, we should be able to retrieve 16 exercises
-    return [exercise[0] for exercise in hardest_exercises]
+    # Extract the second element from each tuple for softmax calculation
+    exp_scores = np.exp(-scores)  # apply negative exponent to invert the scores
+    probabilities = exp_scores / np.sum(
+        exp_scores
+    )  # normalize to create a probability distribution
+
+    # Sample n_samples from the distribution
+    hard_exercises = np.random.choice(exercises, size=n_samples, p=probabilities)
+    return hard_exercises
 
 
 if __name__ == "__main__":
