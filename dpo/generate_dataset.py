@@ -104,6 +104,8 @@ def generate_rejected_solutions(
             top_k=50,
             top_p=0.95,
             num_return_sequences=1,
+            do_sample=True,
+            truncation=True,
         )
         rejected = extract_code_block_rejected(
             completion[0]["generated_text"][-1]["content"]
@@ -172,6 +174,7 @@ def create_subtopics(
                 top_p=0.95,
                 num_return_sequences=1,
                 do_sample=True,
+                truncation=True,
             )
             subcategories = extract_list_from_string(
                 completion[0]["generated_text"][-1]["content"]
@@ -220,22 +223,23 @@ def create_dataset(
 ):
     subtopics_list = []
     if len(reference_exercises) == 0:
-        for topic in topics:
+        for topic in tqdm(topics, ncols=100, desc="Generating subtopics"):
             subtopics_list.extend(
                 create_subtopics(oracle, Topic(topic=topic), num_subtopics)
             )
     else:
-        for exercise in reference_exercises:
+        for exercise in tqdm(
+            reference_exercises, ncols=100, desc="Generating subtopics"
+        ):
             subtopics_list.extend(
-                create_subtopics(
-                    oracle, Topic(topic=topic), num_subtopics, reference_exercises
-                )
+                create_subtopics(oracle, Topic(topic=topic), num_subtopics, exercise)
             )
 
     queries = [
         create_prompt(subtopic, professions, num_exercises)
         for subtopic in subtopics_list
     ]
+
     dataset = []
     for query in tqdm(queries, ncols=100, desc="Generating dataset"):
         messages = [{"role": "user", "content": query}]
@@ -246,6 +250,8 @@ def create_dataset(
             num_return_sequences=1,
             top_k=50,
             top_p=0.95,
+            do_sample=True,
+            truncation=True,
         )
         response = completion[0]["generated_text"]
         codes = extract_assistant_content(response)
@@ -255,8 +261,8 @@ def create_dataset(
                 student, parsed_code, dataset, student_max_length, student_temperature
             )
 
-    with open(dataset_path, "w") as f:
-        json.dump(dataset, f)
+        with open(dataset_path, "w") as f:
+            json.dump(dataset, f, indent=4)
 
     return dataset
 
@@ -334,12 +340,29 @@ def main():
     args = parser.parse_args()
     print(args)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    oracle = create_pipeline(args.oracle_path, device)
-    student = create_pipeline(args.student_path, device)
-    professions = load_json("tree/professions.json")
-    topics_list = load_json("tree/topics.json")
+    num_cuda_devices = torch.cuda.device_count()
+    print(f"Number of CUDA devices: {num_cuda_devices}")
 
+    print("Creating pipelines...")
+    if num_cuda_devices <= 1:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        oracle = create_pipeline(args.oracle_path, device)
+        if args.student_path != args.oracle_path:
+            student = create_pipeline(args.student_path, device)
+        else:
+            student = oracle
+    else:
+        print("Oracle and student models are on different devices.")
+        oracle = create_pipeline(args.oracle_path, device="cuda:0")
+
+        print(f"Oracle model is on device {oracle.device}")
+        student = create_pipeline(args.student_path, device="cuda:1")
+        print(f"Student model is on device {student.device}")
+
+    professions = load_json("dpo/tree/professions.json")
+    topics_list = load_json("dpo/tree/topics.json")
+
+    print("Creating dataset...")
     create_dataset(
         oracle,
         student,
