@@ -5,7 +5,7 @@ import torch
 import re
 import numpy as np
 from tqdm import tqdm
-from transformers import pipeline
+from transformers import pipeline, BitsAndBytesConfig, AutoModelForCausalLM
 from typing import List
 from pydantic import BaseModel
 
@@ -268,8 +268,18 @@ def create_dataset(
 
 
 def create_pipeline(model_path, device):
+    quantization_config = BitsAndBytesConfig(
+        load_in_8bit=True, llm_int8_threshold=200.0
+    )
+    model_in_4bit = AutoModelForCausalLM.from_pretrained(
+        model_path,
+        device_map="auto",
+        quantization_config=quantization_config,
+        torch_dtype=torch.float16,
+    )
+
     return pipeline(
-        "text-generation", model=model_path, tokenizer=model_path, device=device
+        "text-generation", model=model_in_4bit, tokenizer=model_path, device=device
     )
 
 
