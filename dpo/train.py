@@ -8,55 +8,43 @@ from generate_dataset import (
     load_json,
 )
 from transformers import AutoTokenizer
-from peft import PeftConfig
-import re
+from peft import PeftModel
 from peft import PeftModel
 from transformers import BitsAndBytesConfig, AutoModelForCausalLM
 from trl import DPOTrainer
 from peft import LoraConfig
 from transformers import TrainingArguments
-from datasets import DatasetDict
 import gc
-from multiprocessing import cpu_count
+import wandb
 
 
-def apply_chat_template(example, tokenizer, assistant_prefix="<|assistant|>\n"):
-    def _strip_prefix(s, pattern):
-        # Use re.escape to escape any special characters in the pattern
-        return re.sub(f"^{re.escape(pattern)}", "", s)
+def get_train_dataset(dataset_path: str, tokenizer):
+    ds = load_dataset("json", data_files=dataset_path, split="train")
 
-    if all(k in example.keys() for k in ("chosen", "rejected")):
-        # Compared to reward modeling, we filter out the prompt, so the text is everything after the last assistant token
-        prompt_messages = [
-            [msg for msg in example["chosen"] if msg["role"] == "user"][0]
+    def transform_to_conversation(prompt, response):
+        return [
+            {"role": "user", "content": prompt},
+            {"role": "assistant", "content": response},
         ]
-        # Insert system message
-        if example["chosen"][0]["role"] != "system":
-            prompt_messages.insert(0, {"role": "system", "content": ""})
-        else:
-            prompt_messages.insert(0, example["chosen"][0])
-        # TODO: handle case where chosen/rejected also have system messages
-        chosen_messages = example["chosen"][1:]
-        rejected_messages = example["rejected"][1:]
-        example["text_chosen"] = tokenizer.apply_chat_template(
-            chosen_messages, tokenize=False
-        )
-        example["text_rejected"] = tokenizer.apply_chat_template(
-            rejected_messages, tokenize=False
-        )
-        example["text_prompt"] = tokenizer.apply_chat_template(
-            prompt_messages, tokenize=False, add_generation_prompt=True
-        )
-        example["text_chosen"] = _strip_prefix(example["text_chosen"], assistant_prefix)
-        example["text_rejected"] = _strip_prefix(
-            example["text_rejected"], assistant_prefix
-        )
-    else:
-        raise ValueError(
-            f"Could not format example as dialogue for `dpo` task! Require `[chosen, rejected]` keys but found {list(example.keys())}"
-        )
 
-    return example
+    def process(row):
+        chosen_conversation = transform_to_conversation(row["prompt"], row["chosen"])
+        row["chosen"] = tokenizer.apply_chat_template(
+            chosen_conversation, tokenize=False
+        )
+        rejected_conversation = transform_to_conversation(
+            row["prompt"], row["rejected"]
+        )
+        row["rejected"] = tokenizer.apply_chat_template(
+            rejected_conversation, tokenize=False
+        )
+        return row
+
+    train_dataset = ds.map(
+        process,
+        load_from_cache_file=False,
+    )
+    return train_dataset
 
 
 def get_hard_exercises(dpo_trainer, n_samples):
@@ -64,22 +52,28 @@ def get_hard_exercises(dpo_trainer, n_samples):
 
     exercises = []
     scores = []
+    print(len(data))
 
     for batch in data:
         recap = dpo_trainer.get_batch_loss_metrics(dpo_trainer.model, batch)
-        exercises.append(batch["prompt"])
-        scores.append(recap[1]["rewards/chosen"].item())
+        reward = recap[1]["rewards/margins"].item()
+        for exercise in batch["prompt"]:
+            exercises.append(exercise)
+            scores.append(reward)
         del recap
         gc.collect()
 
     # Extract the second element from each tuple for softmax calculation
+    scores = np.array(scores)
     exp_scores = np.exp(-scores)  # apply negative exponent to invert the scores
     probabilities = exp_scores / np.sum(
         exp_scores
     )  # normalize to create a probability distribution
 
     # Sample n_samples from the distribution
-    hard_exercises = np.random.choice(exercises, size=n_samples, p=probabilities)
+    hard_exercises = np.random.choice(
+        exercises, size=n_samples, p=probabilities, replace=False
+    )
     return hard_exercises
 
 
@@ -146,10 +140,10 @@ if __name__ == "__main__":
         help="Output directory for the fine-tuned model",
     )
     parser.add_argument(
-        "--num_train_epochs",
+        "--num_steps",
         type=int,
-        default=1,
-        help="Number of training epochs",
+        default=200,
+        help="Number of training steps",
     )
     parser.add_argument(
         "--per_device_train_batch_size",
@@ -173,16 +167,42 @@ if __name__ == "__main__":
         "--repetitions",
         type=int,
         default=1,
+        choices=range(1, 21),
+    )
+    parser.add_argument(
+        "--wandb_token",
+        type=str,
+        required=True,
     )
 
     args = parser.parse_args()
-    print(args)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    oracle = create_pipeline(args.oracle_path, device)
-    student = create_pipeline(args.student_path, device)
+    print("Logging in to wandb...")
+    wandb.login(key=args.wandb_token)
+
+    num_cuda_devices = torch.cuda.device_count()
+    print(f"Number of CUDA devices: {num_cuda_devices}")
+
+    print("Creating pipelines...")
+    if num_cuda_devices <= 1:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        oracle = create_pipeline(args.oracle_path, device)
+        if args.student_path != args.oracle_path:
+            student = create_pipeline(args.student_path, device)
+        else:
+            student = oracle
+    else:
+        print("Oracle and student models are on different devices.")
+        oracle = create_pipeline(args.oracle_path, device="cuda:0")
+
+        print(f"Oracle model is on device {oracle.device}")
+        student = create_pipeline(args.student_path, device="cuda:1")
+        print(f"Student model is on device {student.device}")
+
     professions = load_json("tree/professions.json")
     topics_list = load_json("tree/topics.json")
+
+    print("Creating dataset...")
     dataset_path = create_dataset(
         oracle,
         student,
@@ -198,25 +218,23 @@ if __name__ == "__main__":
     )
     del student
     gc.collect()
+    # If the student pipeline is on a different device we could maybe call torch.cuda.empty_cache() here
 
-    dataset = load_dataset("json", data_files=dataset_path, split="train")
     student_path = args.student_path
 
     for i in range(args.repetitions):
         # If it's not the first iteration we don't need to generate the dataset since we did it at the end of the previous iteration
-        size = dataset.num_rows
-        # Split the dataset into train and test
-        train_set = dataset.select(range(int(size * 0.8)))
-        test_set = dataset.select(range(int(size * 0.8), size))
-        dataset_dict = {"train": train_set, "test": test_set}
-        dataset = DatasetDict(dataset_dict)
         tokenizer = AutoTokenizer.from_pretrained(student_path)
 
         if tokenizer.pad_token_id is None:
             tokenizer.pad_token_id = tokenizer.eos_token_id
 
         # Truncate from left to ensure we don't lose labels in final turn
-        tokenizer.truncation_side = "left"
+        # tokenizer.truncation_side = "left"
+        tokenizer.pad_token = tokenizer.eos_token
+        tokenizer.padding_side = "left"
+        tokenizer.add_special_tokens({"bos_token": tokenizer.eos_token})
+        tokenizer.bos_token_id = tokenizer.eos_token_id
 
         # Set reasonable default for models without max length
         if tokenizer.model_max_length > 100_000:
@@ -225,27 +243,7 @@ if __name__ == "__main__":
         DEFAULT_CHAT_TEMPLATE = "{% for message in messages %}\n{% if message['role'] == 'user' %}\n{{ '<|user|>\n' + message['content'] + eos_token }}\n{% elif message['role'] == 'system' %}\n{{ '<|system|>\n' + message['content'] + eos_token }}\n{% elif message['role'] == 'assistant' %}\n{{ '<|assistant|>\n'  + message['content'] + eos_token }}\n{% endif %}\n{% if loop.last and add_generation_prompt %}\n{{ '<|assistant|>' }}\n{% endif %}\n{% endfor %}"
         tokenizer.chat_template = DEFAULT_CHAT_TEMPLATE
 
-        column_names = list(dataset["train"].features)
-
-        dataset = dataset.map(
-            apply_chat_template,
-            fn_kwargs={"tokenizer": tokenizer},
-            num_proc=cpu_count(),
-            remove_columns=column_names,
-            desc="Formatting comparisons with prompt template",
-        )
-
-        # Replace column names with what TRL needs, text_chosen -> chosen and text_rejected -> rejected
-        for split in ["train", "test"]:
-            dataset[split] = dataset[split].rename_columns(
-                {
-                    "text_prompt": "prompt",
-                    "text_chosen": "chosen",
-                    "text_rejected": "rejected",
-                }
-            )
-
-        peft_config = PeftConfig.from_pretrained(student_path)
+        dataset = get_train_dataset(dataset_path=dataset_path, tokenizer=tokenizer)
 
         # specify how to quantize the model
         quantization_config = BitsAndBytesConfig(
@@ -267,47 +265,59 @@ if __name__ == "__main__":
             quantization_config=quantization_config,
         )
 
-        base_model = AutoModelForCausalLM.from_pretrained(
-            peft_config.base_model_name_or_path, **model_kwargs
-        )
+        model = AutoModelForCausalLM.from_pretrained(student_path, **model_kwargs)
         # Step 2: load base model + SFT adapter weights
         # notice that only the adapter weights are trainable!
-        model = PeftModel.from_pretrained(base_model, student_path)
 
         # based on config
+        # training_args = TrainingArguments(
+        #     bf16=True,
+        #     do_eval=True,
+        #     evaluation_strategy="steps",
+        #     eval_steps=100,
+        #     gradient_accumulation_steps=4,
+        #     gradient_checkpointing=True,
+        #     gradient_checkpointing_kwargs={"use_reentrant": False},
+        #     hub_model_id="zephyr-7b-dpo-qlora",
+        #     learning_rate=5.0e-6,
+        #     log_level="info",
+        #     logging_steps=10,
+        #     lr_scheduler_type="cosine",
+        #     num_train_epochs=1,
+        #     optim="paged_adamw_32bit",
+        #     output_dir=args.output_dir,  # It is handy to append `hub_model_revision` to keep track of your local experiments
+        #     per_device_train_batch_size=4,
+        #     per_device_eval_batch_size=8,
+        #     # push_to_hub=True,
+        #     save_strategy="steps",
+        #     save_steps=100,
+        #     save_total_limit=1,
+        #     seed=42,
+        #     warmup_ratio=0.1,
+        #     report_to="wandb",
+        # )
+
         training_args = TrainingArguments(
             bf16=True,
-            beta=0.01,
-            do_eval=True,
-            evaluation_strategy="steps",
-            eval_steps=100,
+            per_device_train_batch_size=args.per_device_train_batch_size,
             gradient_accumulation_steps=4,
             gradient_checkpointing=True,
-            gradient_checkpointing_kwargs={"use_reentrant": False},
-            hub_model_id="zephyr-7b-dpo-qlora",
-            learning_rate=5.0e-6,
-            log_level="info",
-            logging_steps=10,
+            learning_rate=args.learning_rate,
             lr_scheduler_type="cosine",
-            max_length=1024,
-            max_prompt_length=512,
-            num_train_epochs=1,
+            max_steps=args.num_steps,
+            save_strategy="no",
+            logging_steps=1,
+            output_dir=args.output_dir,
             optim="paged_adamw_32bit",
-            output_dir=args.output_dir,  # It is handy to append `hub_model_revision` to keep track of your local experiments
-            per_device_train_batch_size=4,
-            per_device_eval_batch_size=8,
-            # push_to_hub=True,
-            save_strategy="steps",
-            save_steps=100,
-            save_total_limit=1,
+            warmup_steps=100,
+            report_to="wandb",
             seed=42,
-            warmup_ratio=0.1,
         )
 
         # based on the recipe: https://github.com/huggingface/alignment-handbook/blob/main/recipes/zephyr-7b-beta/dpo/config_qlora.yaml
         peft_config = LoraConfig(
-            r=128,
-            lora_alpha=128,
+            r=16,
+            lora_alpha=32,
             lora_dropout=0.05,
             bias="none",
             task_type="CAUSAL_LM",
@@ -322,42 +332,62 @@ if __name__ == "__main__":
             ],
         )
 
+        # trainer = DPOTrainer(
+        #    model,
+        #    ref_model=None,
+        #    model_init_kwargs=None,
+        #    ref_model_init_kwargs=None,
+        #    args=training_args,
+        #    beta=training_args.beta,
+        #    train_dataset=dataset["train"],
+        #    eval_dataset=dataset["test"],
+        #    tokenizer=tokenizer,
+        #    max_length=training_args.max_length,
+        #    max_prompt_length=training_args.max_prompt_length,
+        #    peft_config=peft_config,
+        #    loss_type=training_args.loss_type,
+        # )
+
         trainer = DPOTrainer(
             model,
-            ref_model=None,
-            model_init_kwargs=None,
-            ref_model_init_kwargs=None,
+            None,
             args=training_args,
-            beta=training_args.beta,
-            train_dataset=dataset["train"],
-            eval_dataset=dataset["test"],
+            train_dataset=dataset,
             tokenizer=tokenizer,
-            max_length=training_args.max_length,
-            max_prompt_length=training_args.max_prompt_length,
             peft_config=peft_config,
-            loss_type=training_args.loss_type,
+            beta=args.beta,
+            max_prompt_length=1024,
+            max_length=1536,
         )
 
         train_result = trainer.train()
 
-        metrics = train_result.metrics
-        max_train_samples = (
-            training_args.max_train_samples
-            if training_args.max_train_samples is not None
-            else len(dataset["train"])
-        )
-        metrics["train_samples"] = min(max_train_samples, len(dataset["train"]))
-        trainer.log_metrics("train", metrics)
-        trainer.save_metrics("train", metrics)
-        trainer.save_state()
+        # Save the adapters
+        trainer.model.save_pretrained(f"checkpoint_v{i}")
+        trainer.tokenizer.save_pretrained(f"checkpoint_v{i}")
+        reference_exercises = get_hard_exercises(trainer)
+
         # Flush memory
+        del trainer, model
+        gc.collect()
+        torch.cuda.empty_cache()
 
+        # Load the base model
+        base_model = AutoModelForCausalLM.from_pretrained(
+            student_path, return_dict=True, torch_dtype=torch.float16
+        )
+        tokenizer = AutoTokenizer.from_pretrained(student_path)
+
+        # Merge the adapters into the base model
+        model = PeftModel.from_pretrained(base_model, f"checkpoint_v{i}")
+        model = model.merge_and_unload()
+
+        # Save the model
+        student_path = f"model_v{i}"
+        model.save_pretrained(student_path)
+        tokenizer.save_pretrained(student_path)
+        # If this is not the last iteration, generate a new dataset
         if i != args.repetitions - 1:
-            reference_exercises = get_hard_exercises(trainer)
-            del trainer
-            gc.collect()
-            student_path = args.output_dir
-
             student = create_pipeline(student_path, device)
             dataset_path = create_dataset(
                 oracle,
@@ -374,6 +404,5 @@ if __name__ == "__main__":
                 reference_exercises,
             )
 
-            dataset = load_dataset("json", data_files=dataset_path, split="train")
             del student
             gc.collect()
