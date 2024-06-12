@@ -1,9 +1,12 @@
 tqdm==4.66.4
-transformers==4.41.2
+transformers==4.41.1
 pydantic==2.7.3
 numpy==1.26.4
 torch==2.3.1
 bitsandbytes==0.43.1
-datasets==2.19.2
+datasets==2.19.1
 peft==0.11.1
-trl==0.9.4
+trl==0.8.6
+accelerate==0.26.1
+evaluate==0.4.1
+wandb==0.17.0
