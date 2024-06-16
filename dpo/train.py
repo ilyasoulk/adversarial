@@ -174,6 +174,11 @@ if __name__ == "__main__":
         type=str,
         required=True,
     )
+    parser.add_argument(
+        "--use_existing_dataset",
+        type=bool,
+        default=False,
+    )
 
     args = parser.parse_args()
 
@@ -203,19 +208,22 @@ if __name__ == "__main__":
     topics_list = load_json("tree/topics.json")
 
     print("Creating dataset...")
-    dataset_path = create_dataset(
-        oracle,
-        student,
-        topics_list,
-        professions,
-        args.num_subtopic_per_topic,
-        args.num_exercise_per_subtopic,
-        args.dataset_path,
-        args.oracle_max_length,
-        args.oracle_temperature,
-        args.student_max_length,
-        args.student_temperature,
-    )
+    if args.use_existing_dataset:
+        dataset_path = args.dataset_path
+    else:
+        dataset_path = create_dataset(
+            oracle,
+            student,
+            topics_list,
+            professions,
+            args.num_subtopic_per_topic,
+            args.num_exercise_per_subtopic,
+            args.dataset_path,
+            args.oracle_max_length,
+            args.oracle_temperature,
+            args.student_max_length,
+            args.student_temperature,
+        )
     del student
     gc.collect()
     # If the student pipeline is on a different device we could maybe call torch.cuda.empty_cache() here
@@ -255,6 +263,11 @@ if __name__ == "__main__":
         device_map = (
             {"": torch.cuda.current_device()} if torch.cuda.is_available() else None
         )
+
+        if torch.cuda.is_available() and torch.cuda.device_count() > 1:
+            device_map = {f"cuda:{i}": i for i in range(torch.cuda.device_count())}
+        else:
+            device_map = None
 
         # Step 1: load the base model (Mistral-7B in our case) in 4-bit
         model_kwargs = dict(
