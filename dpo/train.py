@@ -15,7 +15,6 @@ from trl import DPOTrainer
 from peft import LoraConfig
 from transformers import TrainingArguments
 import gc
-import wandb
 
 
 def get_train_dataset(dataset_path: str, tokenizer):
@@ -170,20 +169,12 @@ if __name__ == "__main__":
         choices=range(1, 21),
     )
     parser.add_argument(
-        "--wandb_token",
-        type=str,
-        required=True,
-    )
-    parser.add_argument(
         "--use_existing_dataset",
         type=bool,
         default=False,
     )
 
     args = parser.parse_args()
-
-    print("Logging in to wandb...")
-    wandb.login(key=args.wandb_token)
 
     num_cuda_devices = torch.cuda.device_count()
     print(f"Number of CUDA devices: {num_cuda_devices}")
@@ -323,7 +314,7 @@ if __name__ == "__main__":
             output_dir=args.output_dir,
             optim="paged_adamw_32bit",
             warmup_steps=100,
-            report_to="wandb",
+            report_to="tensorboard",
             seed=42,
         )
 
