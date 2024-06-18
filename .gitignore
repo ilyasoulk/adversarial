@@ -173,3 +173,5 @@ generate_exercise/mixtral_7b/exercises_v2
 generate_exercise/mixtral_7b/Categories.json
 generate_exercise/mixtral_7b/exercises_sub_dataset.json
 generate_exercise/mixtral_7b/Filtered_categories.json
+dpo/datasets
+logs
