@@ -277,7 +277,6 @@ def create_pipeline(model_path, device, do_quantization=False):
         model_path,
         device_map="auto",
         quantization_config=None if not do_quantization else quantization_config,
-        torch_dtype=torch.float16,
     )
 
     return pipeline("text-generation", model=model, tokenizer=model_path, device=device)
