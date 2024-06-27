@@ -95,10 +95,14 @@ if __name__ == "__main__":
             student = oracle
     else:
         print("Oracle and student models are on different devices.")
-        oracle = create_pipeline(args.oracle_path, device="cuda:0")
+        oracle = create_pipeline(
+            args.oracle_path, device="cuda:0", do_quantization=args.do_quantization
+        )
 
         print(f"Oracle model is on device {oracle.device}")
-        student = create_pipeline(args.student_path, device="cuda:1")
+        student = create_pipeline(
+            args.student_path, device="cuda:1", do_quantization=args.do_quantization
+        )
         print(f"Student model is on device {student.device}")
 
     professions = load_json("tree/professions.json")

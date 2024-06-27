@@ -137,7 +137,7 @@ def create_prompt_query(topic: Topic, profession: str, n: int) -> str:
             ```
             def name(args):
 
-            """Docstring explaining the exercise"""
+                """Docstring explaining the exercise"""
 
             the solution of the exercise in Python
             ```            
@@ -267,20 +267,20 @@ def create_dataset(
     return dataset
 
 
-def create_pipeline(model_path, device):
-    quantization_config = BitsAndBytesConfig(
-        load_in_8bit=True, llm_int8_threshold=200.0
-    )
-    model_in_4bit = AutoModelForCausalLM.from_pretrained(
+def create_pipeline(model_path, device, do_quantization=False):
+
+    if do_quantization:
+        quantization_config = BitsAndBytesConfig(
+            load_in_8bit=True, llm_int8_threshold=200.0
+        )
+    model = AutoModelForCausalLM.from_pretrained(
         model_path,
         device_map="auto",
-        quantization_config=quantization_config,
+        quantization_config=None if not do_quantization else quantization_config,
         torch_dtype=torch.float16,
     )
 
-    return pipeline(
-        "text-generation", model=model_in_4bit, tokenizer=model_path, device=device
-    )
+    return pipeline("text-generation", model=model, tokenizer=model_path, device=device)
 
 
 def load_json(file_path):
