@@ -47,7 +47,7 @@ def get_train_dataset(dataset_path: str, tokenizer):
     return train_dataset
 
 
-def get_hard_exercises(dpo_trainer, n_samples):
+def get_hard_exercises(dpo_trainer, n_samples=10):
     data = dpo_trainer.get_train_dataloader()
 
     exercises = []
@@ -88,7 +88,8 @@ if __name__ == "__main__":
     print("Creating pipelines...")
     if num_cuda_devices <= 1:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        oracle = create_pipeline(args.oracle_path, device)
+        if args.repetitions > 1:
+            oracle = create_pipeline(args.oracle_path, device)
         if args.student_path != args.oracle_path:
             student = create_pipeline(args.student_path, device)
         else:
@@ -191,7 +192,7 @@ if __name__ == "__main__":
         output_dir=args.output_dir,
         optim="paged_adamw_32bit",
         warmup_steps=100,
-        report_to="tensorboard",
+        report_to="wandb",
         seed=42,
     )
 
@@ -241,7 +242,8 @@ if __name__ == "__main__":
         print("Saving the model...")
         trainer.model.save_pretrained(f"checkpoint_v{i}")
         trainer.tokenizer.save_pretrained(f"checkpoint_v{i}")
-        reference_exercises = get_hard_exercises(trainer)
+        if repetitions > 1:
+            reference_exercises = get_hard_exercises(trainer)
 
         # Flush memory
         del trainer, model

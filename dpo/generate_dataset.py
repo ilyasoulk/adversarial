@@ -279,7 +279,7 @@ def create_pipeline(model_path, device, do_quantization=False):
         quantization_config=None if not do_quantization else quantization_config,
     )
 
-    return pipeline("text-generation", model=model, tokenizer=model_path, device=device)
+    return pipeline("text-generation", model=model, tokenizer=model_path)
 
 
 def load_json(file_path):

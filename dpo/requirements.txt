@@ -10,3 +10,5 @@ trl==0.8.6
 accelerate==0.26.1
 evaluate==0.4.1
 tensorboard==2.17.0
+huggingface_hub==0.25.1
+wandb==0.18.1
