@@ -1,13 +1,21 @@
 import argparse
+import os
+import time
+from datasets import Dataset
+from transformers.pipelines.pt_utils import KeyDataset
+import json
+from itertools import islice
+import time
 import json
 import argparse
 import torch
 import re
 import numpy as np
 from tqdm import tqdm
-from transformers import pipeline, BitsAndBytesConfig, AutoModelForCausalLM
+from transformers import pipeline, BitsAndBytesConfig, AutoModelForCausalLM, AutoTokenizer
 from typing import List
 from pydantic import BaseModel
+from datasets import load_dataset
 
 
 class Topic(BaseModel):
@@ -25,178 +33,41 @@ class Query(BaseModel):
 
 
 def extract_list_from_string(text):
-    # Pattern to match a list enclosed in square brackets
-    # This regex assumes no nested brackets for simplicity
     pattern = r"\[(.*?)\]"
-    match = re.search(pattern, text, re.DOTALL)
-    if match:
-        # Extract the content inside the brackets
-        list_content = match.group(1)
-        # Split by commas and strip whitespace and quotes
+    matches = re.findall(pattern, text, re.DOTALL)
+    
+    if len(matches) > 0:  # Check if there's at least 2 matches
+        list_content = matches[0]  # Get the second match
         list_items = [
             item.strip().strip('"').strip("'") for item in list_content.split(",")
         ]
+        
         return list_items
     return []
 
 
-def extract_assistant_content(messages):
-    return extract_code_block(messages[-1]["content"])
-
-
-def extract_code_block(text, language="python"):
-    # Regex to find code blocks for a specified language, capturing content inside backticks
-    pattern = rf"```{language}\s*\n(.*?)\n```"
-    # Use re.DOTALL to allow dot (.) to match newlines
-    matches = re.findall(pattern, text, re.DOTALL)
-
-    if matches:
-        # Return the first match; you could also handle multiple matches if necessary
-        return matches
-    print(f"NO PYTHON MARKDOWN WAS FOUND FOR \n{text}")
-    return None
-
-
-def extract_code_parts(full_code):
-    # Regex pattern to capture the function header, args, docstring, and python code
-    pattern = r"(def\s+.+?\(.*?\):\s*\"\"\"(?:.|\n)*?\"\"\")((?:.|\n)*)"
-
-    # Search the pattern in the provided full code string
-    print(f"full_code :\n {full_code}")
-    match = re.match(pattern, full_code)
-
-    if match:
-        # Extracting the two groups: function + docstring, and python code
-        function_docstring = match.group(1)
-        python_code = match.group(2)
-        return function_docstring, python_code
-    else:
-        print(f"WE DIDN'T FOUND ANY FUNCTION DEFINITION FOR THIS : \n{full_code}")
-        return None, None  # Return None if no match found
-
-
-def extract_code_block_rejected(text, language="python"):
-    pattern = rf"```{language}\s*\n(.*?)\n```"
-    matches = re.findall(pattern, text, re.DOTALL)
-
-    if matches:
-        return matches[0]
-    else:
-        print(f"NO PYTHON MARKDOWN WAS FOUND FOR \n{text}")
-        return text
-
-
-def generate_rejected_solutions(
-    student_pipe, exercises, dataset, max_length, temperature
-):
-    for prompt, chosen in exercises:
-        if prompt == None:
-            continue
-
-        messages = [
-            # {"role": "system", "content": "You are a helpful assistant"},
-            {"role": "user", "content": prompt},
-        ]
-        completion = student_pipe(
-            messages,
-            max_length=max_length,
-            temperature=temperature,
-            top_k=50,
-            top_p=0.95,
-            num_return_sequences=1,
-            do_sample=True,
-            truncation=True,
-        )
-        rejected = extract_code_block_rejected(
-            completion[0]["generated_text"][-1]["content"]
-        )
-        print(f"Rejected solution : {rejected}")
-        dataset.append({"prompt": prompt, "chosen": chosen, "rejected": rejected})
-
-    return dataset
-
-
-def create_subtopic_query(topic: str, n: int, reference_exercises) -> str:
-    if len(reference_exercises) > 0:
-        return f"""From the given reference coding exercise {reference_exercises}, extract {n} topics, formatted as an unnamed Python list. For example ```python\n[topic_1, topic_2, ... topic_n]\n```
-        Just provide the titles and give no explanation.
-        Format the result as a Python list."""
-    return f"""For a Python textbook give me {n} subtopics of {topic}, formatted as an unamed Python list. For example ```python\n[subtopic_1, subtopic_2 ... subtopic_n]\n``` 
-    Just provide the titles and give no explanation.
-    Format the result as Python list.
-    """
-
-
 def create_prompt_query(topic: Topic, profession: str, n: int) -> str:
     query = f'''
-            Create {n} DISTINCT code completion exercise about “{topic.topic}””.  
-            Write it for a {profession}. 
+            Create {n} unique and challenging Python code completion exercises on the topic of “{topic}”.
+            Each exercise should target the skill level of a {profession} and provide a complete solution.
 
-            The exercise must be of the style: 
-
+            Structure each exercise as follows:
+            
             ```
-            def name(args):
-
-                """Docstring explaining the exercise"""
-
-            the solution of the exercise in Python
-            ```            
-            NO CLASSES
-
-            MAKE IT VERY DIFFICULT
+            def function_name(parameters):
+                """
+                Description of the task or problem to solve, providing all necessary context.
+                """
+                # Solution code starts here (in Python)
+            ```
+            
+            Guidelines:
+            - Avoid using classes.
+            - Make each exercise very difficult to challenge the user.
+            - Ensure a complete solution is provided immediately following the docstring.
             '''
-    query = "\n".join([m.lstrip() for m in query.strip().split("\n")])
+    query = "\n".join([line.strip() for line in query.strip().split("\n")])
     return query
-
-
-def create_subtopics(
-    oracle,
-    topic: Topic = Topic(topic="Default"),
-    n: int = 10,
-    retries: int = 10,
-    reference_exercises=[],
-):
-    success = False
-    query = create_subtopic_query(topic.topic, n, reference_exercises)
-    result = []
-    print(query)
-    for i in range(retries):
-        try:
-            messages = [
-                # {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": query},
-            ]
-            completion = oracle(
-                messages,
-                max_length=1000,
-                temperature=1.5,
-                top_k=50,
-                top_p=0.95,
-                num_return_sequences=1,
-                do_sample=True,
-                truncation=True,
-            )
-            subcategories = extract_list_from_string(
-                completion[0]["generated_text"][-1]["content"]
-            )
-            if subcategories == None:
-                print(
-                    f"Generation failed for prompt, retrying {i + 1}/{retries}, error: List not found"
-                )
-                continue
-            result = [Topic(topic=i) for i in subcategories]
-            success = True
-        except Exception as e:
-            print(
-                f"Generation failed for prompt, retrying {i + 1}/{retries}, error: {e}"
-            )
-        else:
-            break
-
-    if success:
-        return result
-    else:
-        return []
 
 
 def create_prompt(topic: Topic, professions: List[str], n: int) -> Query:
@@ -207,85 +78,366 @@ def create_prompt(topic: Topic, professions: List[str], n: int) -> Query:
     return query
 
 
+def create_topic_prompts(topics, n, reference_exercises=[]):
+    res = []
+    if len(reference_exercises) > 0: # Adversarial episode
+        for reference in reference_exercises:
+            # Incremental Complexity Prompt
+            incremental_complexity_prompt = f"""
+            Based on the reference exercise '{reference}', generate {n} new coding exercises that introduce additional edge cases and increased complexity.
+            
+            Requirements:
+            - Build upon the original task, adding nuanced complexity.
+            - Avoid using classes, but require complex logic and multiple edge cases.
+            - Provide a solution following the exercise.
+
+            Format:
+            ```
+            def function_name(parameters):
+                \"\"\"Exercise description with additional complexity.\"\"\"
+                # Solution code here
+            ```
+            """
+
+            # Opposite Approach Prompt
+            opposite_approach_prompt = f"""
+            Create {n} adversarial coding exercises for the topic related to '{reference}' that challenge conventional assumptions made in the original exercise.
+            
+            Requirements:
+            - Shift expected assumptions, requiring the model to adapt to unexpected scenarios.
+            - Keep exercises challenging and avoid using classes.
+            - Provide solutions immediately after each exercise.
+
+            Format:
+            ```
+            def function_name(parameters):
+                \"\"\"Exercise with altered assumptions.\"\"\"
+                # Solution code here
+            ```
+            """
+
+            # Deceptive Complexity Prompt
+            deceptive_complexity_prompt = f"""
+            Generate {n} coding exercises inspired by '{reference}' that appear simple but involve hidden complexities.
+            
+            Requirements:
+            - Exercises should look straightforward but require complex solutions.
+            - Avoid classes and focus on deceptive problem setups.
+            - Solutions should immediately follow the exercise.
+
+            Format:
+            ```
+            def function_name(parameters):
+                \"\"\"Exercise with hidden complexities.\"\"\"
+                # Solution code here
+            ```
+            """
+
+            # Conceptual Shift Prompt
+            conceptual_shift_prompt = f"""
+            Create {n} exercises on a topic related to '{reference}' that require alternative reasoning paths.
+            
+            Requirements:
+            - Exercises should challenge conventional solutions, pushing the model to apply different reasoning approaches.
+            - Keep exercises difficult and avoid classes.
+            - Provide solutions directly after each exercise.
+
+            Format:
+            ```
+            def function_name(parameters):
+                \"\"\"Exercise requiring alternative reasoning.\"\"\"
+                # Solution code here
+            ```
+            """
+
+            # Error-Based Prompt
+            error_based_prompt = f"""
+            Based on common errors found in solving the exercise '{reference}', generate {n} new exercises that incorporate these common pitfalls.
+            
+            Requirements:
+            - Design exercises to test the model’s ability to avoid or recognize typical mistakes.
+            - Keep exercises challenging and avoid using classes.
+            - Solutions should follow each exercise.
+
+            Format:
+            ```
+            def function_name(parameters):
+                \"\"\"Exercise addressing common pitfalls.\"\"\"
+                # Solution code here
+            ```
+            """
+            
+            # Append each adversarial prompt for the given reference exercise
+            res.extend([
+                incremental_complexity_prompt,
+                opposite_approach_prompt,
+                deceptive_complexity_prompt,
+                conceptual_shift_prompt,
+                error_based_prompt
+            ])
+
+    else:
+        for topic in topics:
+            prompt = f"""
+            As a Python textbook author, create {n} distinct subtopics for the main topic '{topic}'. 
+
+            Requirements:
+            - Each subtopic should be broad enough to generate multiple exercise types (theory, practice, debugging).
+            - Include both fundamental and advanced concepts.
+            - Ensure topics build on each other in a logical learning progression.
+            - Mix conceptual and practical application areas.
+            - Avoid overlapping subtopics.
+
+            Format your response as a Python list of strings, like this:
+            ['Basic String Operations', 'String Formatting Methods', 'Regular Expressions']
+
+            Return only the Python list with no additional text or explanation.
+            """
+            res.append(prompt)
+
+    return res
+
+
+def generate(model, tokenizer, batch_size, prompts, generation_config, desc="Generating...", instruct=False):
+    responses = []
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+        tokenizer.pad_token_id = tokenizer.eos_token_id
+
+    for i in tqdm(range(0, len(prompts), batch_size), desc=desc):
+        batch = prompts[i:i + batch_size]
+        
+        if instruct:
+            inputs = tokenizer.apply_chat_template(batch, return_tensors="pt", padding=True, truncation=True, return_dict=True)
+        else:
+            inputs = tokenizer(batch, return_tensors="pt", padding=True, truncation=True)
+
+        inputs = inputs.to(model.device)
+        
+        # Generate
+        with torch.no_grad():
+            outputs = model.generate(
+                **inputs,
+                **generation_config,
+                num_return_sequences=1,
+                top_k=50,
+                top_p=0.95,
+                do_sample=True,
+                pad_token_id=tokenizer.eos_token_id
+            )
+
+        outputs = outputs[:, inputs['input_ids'].shape[1]:]
+        
+        # Decode
+        batch_responses = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+        responses.extend(batch_responses)
+        
+        print(f"Processed {i + len(batch)}/{len(prompts)} prompts")
+
+    return responses
+
+
+def extract_functions(text):
+    """
+    Extracts both function definitions (with docstrings) and their implementations from Python code,
+    excluding the first function occurrence.
+    
+    Args:
+        text (str): Input text containing Python function definitions
+        
+    Returns:
+        list: List of dictionaries containing function definitions and implementations
+    """
+    # Pattern to match complete functions including:
+    # 1. Function definition (def name(args):)
+    # 2. Docstring
+    # 3. Implementation code
+    pattern = r'(def\s+(\w+)\([^)]*\):)\s*("""(?:(?!""")[\s\S])*?""")\s*((?:(?!def\s+\w+\([^)]*\):)[\s\S])*?)(?=\s*def\s+\w+\([^)]*\):|\s*$)'
+    
+    # Find all matches
+    matches = list(re.finditer(pattern, text))
+    
+    # Skip the first match if it exists
+    
+    # Store functions
+    functions = []
+    
+    for match in matches:
+        func_def = match.group(1)
+        func_name = match.group(2)
+        docstring = match.group(3)
+        implementation = match.group(4).strip()
+        
+        # Clean up implementation
+        implementation = re.sub(r'^\s*\n', '', implementation)
+        implementation = re.sub(r'\n\s*$', '', implementation)
+        
+        # Remove common indentation from implementation
+        lines = implementation.split('\n')
+        if lines:
+            # Find minimum indentation (excluding empty lines)
+            indentations = [len(line) - len(line.lstrip()) 
+                          for line in lines if line.strip()]
+            if indentations:
+                min_indent = min(indentations)
+                # Remove the common indentation from each line
+                implementation = '\n'.join(
+                    line[min_indent:] if line.strip() else ''
+                    for line in lines
+                )
+        
+        functions.append({
+            'func_def': f"{func_def}\n    {docstring}",
+            'code': implementation,
+        })
+
+
+    print(f"Extracted {len(functions)} functions")
+    
+    return functions
+
+
+def create_prompts_dataset(oracle, or_tokenizer, topics, num_subtopics, reference_exercises, professions, num_exercises, batch_size, generation_config):
+    subtopics_list = []
+    prompts = create_topic_prompts(topics, num_subtopics, reference_exercises=reference_exercises)
+    if len(reference_exercises) == 0:
+        topics_raw = generate(oracle, or_tokenizer, batch_size=batch_size, prompts=prompts, generation_config=generation_config, desc="Generating Topics...")
+        for topic_raw in topics_raw:
+            subtopics_list.extend(
+                extract_list_from_string(topic_raw)
+            )
+
+        with open("tree/subtopics.json", "w") as f:
+            json.dump(subtopics_list, f, indent=4)
+
+
+
+        # Create prompts
+        queries = [
+            create_prompt(subtopic, professions, num_exercises)
+            for subtopic in subtopics_list
+        ]
+
+    else:
+        queries = prompts
+
+    with open("tree/prompts.json", "w") as f:
+        json.dump(queries, f, indent=4)
+
+    return queries
+
+
 def create_dataset(
     oracle,
+    or_tokenizer,
     student,
+    st_tokenizer,
     topics,
     professions,
     num_subtopics,
     num_exercises,
     dataset_path,
-    oracle_max_length,
-    oracle_temperature,
-    student_max_length,
-    student_temperature,
+    generation_config_oracle,
+    generation_config_student,
     reference_exercises=[],
+    batch_size=16,
 ):
-    subtopics_list = []
-    if len(reference_exercises) == 0:
-        for topic in tqdm(topics, ncols=100, desc="Generating subtopics"):
-            subtopics_list.extend(
-                create_subtopics(oracle, Topic(topic=topic), num_subtopics)
-            )
-    else:
-        for exercise in tqdm(
-            reference_exercises, ncols=100, desc="Generating subtopics"
-        ):
-            subtopics_list.extend(
-                create_subtopics(oracle, Topic(topic=topic), num_subtopics, exercise)
-            )
+    # Generate subtopics (same as before)
 
-    queries = [
-        create_prompt(subtopic, professions, num_exercises)
-        for subtopic in subtopics_list
+
+    queries = create_prompts_dataset(oracle, or_tokenizer, topics, num_subtopics, reference_exercises, professions, num_exercises, batch_size, generation_config_oracle)
+
+    # Convert queries to proper chat format
+    messages_dataset = [
+        [
+            {"role": "system", "content": "You are a helpful coding assistant."},
+            {"role": "user", "content": query}
+        ] for query in queries
     ]
 
+    # Generate both prompts and chosen
+    responses = generate(oracle, or_tokenizer, batch_size, messages_dataset, generation_config=generation_config_oracle, desc="Generating DPO Prompts", instruct=True)
     dataset = []
-    for query in tqdm(queries, ncols=100, desc="Generating dataset"):
-        messages = [{"role": "user", "content": query}]
-        completion = oracle(
-            messages,
-            max_length=oracle_max_length,
-            temperature=oracle_temperature,
-            num_return_sequences=1,
-            top_k=50,
-            top_p=0.95,
-            do_sample=True,
-            truncation=True,
-        )
-        response = completion[0]["generated_text"]
-        codes = extract_assistant_content(response)
-        if codes:
-            parsed_code = [extract_code_parts(code) for code in codes]
-            dataset = generate_rejected_solutions(
-                student, parsed_code, dataset, student_max_length, student_temperature
-            )
+    for response in responses:
+        dataset.extend(extract_functions(response))
 
-        with open(dataset_path, "w") as f:
-            json.dump(dataset, f, indent=4)
+    # Generate rejecteds
+    dpo_prompts = [f"Complete the following python code :\n{data["func_def"]}" for data in dataset]
+    winning = generate(oracle, or_tokenizer, batch_size, dpo_prompts, generation_config=generation_config_oracle, desc="Generating Winning Solutions")
+    rejected = generate(student, st_tokenizer, batch_size, dpo_prompts, generation_config=generation_config_student, desc="Generating Rejected Solutions")
+
+    clean_dataset = []
+    # Clean up and compose dataset
+    for prompt, win, reject in zip(dpo_prompts, winning, rejected):
+        # If empty we ignore
+        if prompt == "" or win == "" or reject == "":
+            continue
+
+        clean_dataset.append({"prompt" : prompt, "chosen": win, "rejected": reject})
+
+
+    with open(dataset_path, "w") as f:
+        json.dump(clean_dataset, f, indent=4)
 
     return dataset
 
 
-def create_pipeline(model_path, device, do_quantization=False):
-
-    if do_quantization:
-        quantization_config = BitsAndBytesConfig(
-            load_in_8bit=True, llm_int8_threshold=200.0
-        )
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path,
-        device_map="auto",
-        quantization_config=None if not do_quantization else quantization_config,
-    )
-
-    return pipeline("text-generation", model=model, tokenizer=model_path)
-
-
 def load_json(file_path):
-    with open(file_path, "r") as f:
-        return json.load(f)
+    try:
+        with open(file_path, "r") as f:
+            return json.load(f)
+    except:
+        return None
 
+
+def load_model(model_name, do_quantization=False):
+    if do_quantization:
+        quantization_config = BitsAndBytesConfig(load_in_8bit=True)
+
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        device_map="auto",
+        torch_dtype=torch.float16,
+        trust_remote_code=True,
+        quantization_config=quantization_config if do_quantization else None
+    )
+    tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
+    model.generation_config.cache_implementation = "static"
+    # model.forward = torch.compile(model.forward, mode="reduce-overhead", fullgraph=True)
+
+    return model, tokenizer
+
+
+def dataset_generation(oracle_path, student_path, args):
+
+    oracle, or_tokenizer = load_model(oracle_path)
+    student, st_tokenizer = load_model(student_path)
+
+    professions = load_json("tree/professions.json")
+    topics_list = load_json("tree/topics.json")
+
+    print("Creating dataset...")
+    start_time = time.time()
+    generation_config_oracle = {"temperature": args.oracle_temperature, "max_length": args.oracle_max_length}
+    generation_config_student = {"temperature": args.student_temperature, "max_length": args.student_max_length}
+    
+    create_dataset(
+        oracle,
+        or_tokenizer,
+        student,
+        st_tokenizer,
+        topics_list,
+        professions,
+        args.num_subtopic_per_topic,
+        args.num_exercise_per_subtopic,
+        args.dataset_path,
+        generation_config_oracle,
+        generation_config_student,
+    )
+    end_time = time.time()
+
+    execution_time = end_time - start_time
+    print(f"Execution Time: {execution_time} seconds")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -347,44 +499,41 @@ def main():
     )
 
     args = parser.parse_args()
-    print(args)
 
-    num_cuda_devices = torch.cuda.device_count()
-    print(f"Number of CUDA devices: {num_cuda_devices}")
+    dataset_generation(args.oracle_path, args.student_path, args)
 
-    print("Creating pipelines...")
-    if num_cuda_devices <= 1:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        oracle = create_pipeline(args.oracle_path, device)
-        if args.student_path != args.oracle_path:
-            student = create_pipeline(args.student_path, device)
-        else:
-            student = oracle
-    else:
-        print("Oracle and student models are on different devices.")
-        oracle = create_pipeline(args.oracle_path, device="cuda:0")
+    # num_cuda_devices = torch.cuda.device_count()
+    # print(f"Number of CUDA devices: {num_cuda_devices}")
 
-        print(f"Oracle model is on device {oracle.device}")
-        student = create_pipeline(args.student_path, device="cuda:1")
-        print(f"Student model is on device {student.device}")
+    # print("Creating pipelines...")
 
-    professions = load_json("dpo/tree/professions.json")
-    topics_list = load_json("dpo/tree/topics.json")
+    # oracle, or_tokenizer = load_model(args.oracle_path)
+    # student, st_tokenizer = load_model(args.student_path)
 
-    print("Creating dataset...")
-    create_dataset(
-        oracle,
-        student,
-        topics_list,
-        professions,
-        args.num_subtopic_per_topic,
-        args.num_exercise_per_subtopic,
-        args.dataset_path,
-        args.oracle_max_length,
-        args.oracle_temperature,
-        args.student_max_length,
-        args.student_temperature,
-    )
+    # professions = load_json("tree/professions.json")
+    # topics_list = load_json("tree/topics.json")
+
+    # print("Creating dataset...")
+    # start_time = time.time()
+    # create_dataset(
+    #     oracle,
+    #     or_tokenizer,
+    #     student,
+    #     st_tokenizer,
+    #     topics_list,
+    #     professions,
+    #     args.num_subtopic_per_topic,
+    #     args.num_exercise_per_subtopic,
+    #     args.dataset_path,
+    #     args.oracle_max_length,
+    #     args.oracle_temperature,
+    #     args.student_max_length,
+    #     args.student_temperature,
+    # )
+    # end_time = time.time()
+
+    # execution_time = end_time - start_time
+    # print(f"Execution Time: {execution_time} seconds")
 
 
 if __name__ == "__main__":
