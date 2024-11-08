@@ -175,3 +175,12 @@ generate_exercise/mixtral_7b/exercises_sub_dataset.json
 generate_exercise/mixtral_7b/Filtered_categories.json
 dpo/datasets
 logs
+sft/datasets
+dpo/models
+dpo/tree
+dpo/wandb
+dpo/*.logs
+sft/models
+sft/wandb
+sft/*.logs
+dpo/qwen_phi
