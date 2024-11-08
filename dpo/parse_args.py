@@ -48,12 +48,6 @@ def parse_args(parser):
         help="Maximum length of student generation",
     )
     parser.add_argument(
-        "--dataset_path",
-        type=str,
-        required=True,
-        help="Output path for the generated dataset",
-    )
-    parser.add_argument(
         "--output_dir",
         type=str,
         required=True,
@@ -91,14 +85,19 @@ def parse_args(parser):
     )
     parser.add_argument(
         "--use_existing_dataset",
-        type=bool,
-        default=False,
+        action='store_true'
     )
     parser.add_argument(
         "--do_quantization",
-        type=bool,
-        default=False,
+        action='store_true'
     )
+    parser.add_argument(
+        "--dataset_path",
+        type=str,
+        required=False,
+        help="Output path for the generated dataset",
+    )
+
 
     args = parser.parse_args()
 
