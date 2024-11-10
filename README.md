@@ -1,36 +1,125 @@
-# adversarial
+# Adversarial Alignment for Code Generation
 
+This repository contains various approaches to improve code generation capabilities of language models through different training methods, including Direct Preference Optimization (DPO), Proximal Policy Optimization (PPO), and traditional Supervised Fine-Tuning (SFT).
 
+## Overview
 
-## Microsoft-phi-1.5 on HumanEval
+The project consists of three main components:
+1. **DPO Training**: Aligns a student model's output distribution with a teacher model using preference learning
+2. **PPO Training**: Reinforcement learning approach using code execution feedback
+3. **SFT Training**: Traditional supervised fine-tuning as a baseline
 
-This repository contains a benchmark of the **Microsoft-phi-1.5** model on the **HumanEval** dataset.
-This benchmark supports *pass@k* metrics you can modify the *microsoft_phi/phi.py* file to change the *k* value.
-The results are stored in the *results* folder. The *results* folder contains all the generated code and a file *test_results.json* that contains the results of the benchmark.
+## Project Structure
 
-To run the benchmark you can use the provided Dockerfile. The Dockerfile contains the necessary dependencies to run the benchmark. You can build the Docker image using the following command:
-You can find a sample of the results in the *results* folder. (10 first tests of HumanEval on pass@5)
+```
+.
+├── dpo/
+│   ├── generate_dataset.py   # Generate preference datasets
+│   └── train.py             # DPO training script
+├── ppo/
+│   ├── bob/                 # PPO implementation
+│   └── ppo_train.py         # PPO training script
+├── sft/                     # Supervised fine-tuning
+└── microsoft_phi/           # Initial benchmarking
+```
+
+## Installation
 
 ```bash
+# Build Docker image
+docker build -t adversarial .
+
+# Run with volume mount for results
+docker run -v $(pwd)/results:/usr/src/app/generated_outputs adversarial
+```
+
+## DPO Training
+
+The DPO approach uses two models (teacher and student) to generate a preference dataset and then trains the student model to align with the teacher's preferences.
+
+### Generating Dataset
+
+```bash
+python dpo/generate_dataset.py \
+    --oracle_path="path/to/teacher/model" \
+    --student_path="path/to/student/model" \
+    --num_subtopic_per_topic=10 \
+    --num_exercise_per_subtopic=5 \
+    --dataset_path="output/dataset/path"
+```
+
+### Training
+
+```bash
+python dpo/train.py \
+    --oracle_path="path/to/teacher/model" \
+    --student_path="path/to/student/model" \
+    --output_dir="output/model/path" \
+    --num_steps=200 \
+    --learning_rate=5e-6 \
+    --beta=0.01
+```
+
+## PPO Training
+
+PPO training uses reinforcement learning where the reward is based on code execution metrics:
+- Unit test performance
+- Assertion errors
+- Runtime errors
+- Syntax errors
+
+```bash
+python ppo/ppo_train.py
+```
+
+## SFT Training
+
+The SFT directory contains baseline supervised fine-tuning scripts for comparison with DPO and PPO approaches.
+
+## Initial Benchmarking
+
+The repository includes initial benchmarking of the Microsoft-phi-1.5 model on HumanEval:
+
+```bash
+# Run benchmark
 docker build -t benchmark .
 docker run -v $(pwd)/results:/usr/src/app/generated_outputs benchmark
 ```
 
-## LoRA trainable params on StarCoderBase-1B and Microsoft-phi-2
+### LoRA Parameters Analysis
 
-The *microsoft_phi/lora_params.py* file contains the code to calculate the trainable parameters of the LoRA model for the *StarCoderBase-1B* and *Microsoft-phi-2* models.
-Same as earlier you can use the Dockerfile to run the code. Remember to set your own token in the Dockerfile and uncomment the entrypoint.
-Feel free to try different models but be careful some models are very large.
-
-
-For instance, here are the results for these models :
-
-    - StarCoderBase-1B : *trainable params: 835,584 || all params: 1,138,042,880 || trainable%: 0.0734228924660554*
-	- Microsoft-phi-2 : *trainable params: 9,175,040 || all params: 2,788,858,880 || trainable%: 0.32898903798244533*
+The project includes LoRA parameter analysis for different models:
+- StarCoderBase-1B: 835,584 trainable params (0.073% of total)
+- Microsoft-phi-2: 9,175,040 trainable params (0.329% of total)
 
 ```bash
 docker build -t lora_params .
 docker run -it lora_params
 ```
 
+## Key Features
 
+- Multiple training approaches (DPO, PPO, SFT)
+- Dataset generation for preference learning
+- Customizable training parameters
+- Docker support
+- Performance metrics tracking
+- LoRA parameter analysis
+
+## Configuration Options
+
+The training scripts support various configuration options:
+- Model paths (teacher/student)
+- Dataset generation parameters
+- Training hyperparameters
+- Batch sizes
+- Learning rates
+- Episode settings
+
+## License
+
+[Add your license information here]
+
+## Contributing
+
+[Add contribution guidelines if applicable]
