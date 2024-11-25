@@ -1,0 +1,46 @@
+The following values were not passed to `accelerate launch` and had defaults used instead:
+	`--num_processes` was set to a value of `1`
+	`--num_machines` was set to a value of `1`
+	`--mixed_precision` was set to a value of `'no'`
+	`--dynamo_backend` was set to a value of `'no'`
+To avoid this warning pass in values for each of the problematic parameters or run `accelerate config`.
+Selected Tasks: ['humaneval']
+Loading model in fp32
+Traceback (most recent call last):
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/utils/hub.py", line 403, in cached_file
+    resolved_file = hf_hub_download(
+                    ^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/huggingface_hub/utils/_deprecation.py", line 101, in inner_f
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 106, in _inner_fn
+    validate_repo_id(arg_value)
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 154, in validate_repo_id
+    raise HFValidationError(
+huggingface_hub.errors.HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '../adversarial/dpo/models/phi-1_5_Qwen2.5-Coder-7B-Instruct_model_v1'. Use `repo_type` argument if needed.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/main.py", line 414, in <module>
+    main()
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/main.py", line 296, in main
+    model = AutoModelForCausalLM.from_pretrained(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py", line 487, in from_pretrained
+    resolved_config_file = cached_file(
+                           ^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/utils/hub.py", line 469, in cached_file
+    raise EnvironmentError(
+OSError: Incorrect path_or_model_id: '../adversarial/dpo/models/phi-1_5_Qwen2.5-Coder-7B-Instruct_model_v1'. Please provide either the path to a local folder or the repo_id of a model on the Hub.
+Traceback (most recent call last):
+  File "/lre/home/ioulkadda/adversarial/dpo/env/bin/accelerate", line 8, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/accelerate/commands/accelerate_cli.py", line 48, in main
+    args.func(args)
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/accelerate/commands/launch.py", line 1174, in launch_command
+    simple_launcher(args)
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/accelerate/commands/launch.py", line 769, in simple_launcher
+    raise subprocess.CalledProcessError(returncode=process.returncode, cmd=cmd)
+subprocess.CalledProcessError: Command '['/lre/home/ioulkadda/adversarial/dpo/env/bin/python', 'main.py', '--model', '../adversarial/dpo/models/phi-1_5_Qwen2.5-Coder-7B-Instruct_model_v1', '--max_length_generation', '512', '--tasks', 'humaneval', '--temperature', '0.2', '--n_samples', '10', '--batch_size', '20', '--allow_code_execution', '--use_auth_token']' returned non-zero exit status 1.

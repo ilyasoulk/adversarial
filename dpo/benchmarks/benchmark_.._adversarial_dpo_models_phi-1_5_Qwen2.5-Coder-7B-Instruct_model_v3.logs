@@ -1,0 +1,109 @@
+The following values were not passed to `accelerate launch` and had defaults used instead:
+	`--num_processes` was set to a value of `1`
+	`--num_machines` was set to a value of `1`
+	`--mixed_precision` was set to a value of `'no'`
+	`--dynamo_backend` was set to a value of `'no'`
+To avoid this warning pass in values for each of the problematic parameters or run `accelerate config`.
+Selected Tasks: ['humaneval']
+Loading model in fp32
+number of problems for this task is 164
+  0%|          | 0/164 [00:00<?, ?it/s]  1%|          | 1/164 [00:05<15:35,  5.74s/it]  1%|          | 2/164 [00:22<33:14, 12.31s/it]  2%|▏         | 3/164 [00:23<19:32,  7.28s/it]  2%|▏         | 4/164 [00:26<13:58,  5.24s/it]  3%|▎         | 5/164 [00:29<12:13,  4.61s/it]  4%|▎         | 6/164 [00:32<10:40,  4.05s/it]  4%|▍         | 7/164 [00:43<16:17,  6.23s/it]  5%|▍         | 8/164 [00:44<11:42,  4.50s/it]  5%|▌         | 9/164 [00:46<10:15,  3.97s/it]  6%|▌         | 10/164 [01:03<20:26,  7.96s/it]  7%|▋         | 11/164 [01:18<25:35, 10.03s/it]  7%|▋         | 12/164 [01:29<26:27, 10.44s/it]  8%|▊         | 13/164 [01:32<20:00,  7.95s/it]  9%|▊         | 14/164 [01:49<26:54, 10.76s/it]  9%|▉         | 15/164 [01:52<21:16,  8.57s/it] 10%|▉         | 16/164 [01:53<15:20,  6.22s/it] 10%|█         | 17/164 [01:58<14:19,  5.85s/it] 11%|█         | 18/164 [02:13<20:54,  8.59s/it] 11%|█         | 18/164 [02:29<20:10,  8.29s/it]
+Traceback (most recent call last):
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/main.py", line 414, in <module>
+    main()
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/main.py", line 398, in main
+    results[task] = evaluator.evaluate(
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/bigcode_eval/evaluator.py", line 95, in evaluate
+    generations, references = self.generate_text(task_name, intermediate_generations=intermediate_generations)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/bigcode_eval/evaluator.py", line 69, in generate_text
+    generations = parallel_generations(
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/bigcode_eval/generation.py", line 141, in parallel_generations
+    generations = complete_code(
+                  ^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/bigcode_eval/utils.py", line 303, in complete_code
+    generated_tokens = model.generate(
+                       ^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/generation/utils.py", line 2215, in generate
+    result = self._sample(
+             ^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/generation/utils.py", line 3206, in _sample
+    outputs = self(**model_inputs, return_dict=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/models/phi/modeling_phi.py", line 1235, in forward
+    outputs = self.model(
+              ^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/models/phi/modeling_phi.py", line 980, in forward
+    layer_outputs = decoder_layer(
+                    ^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/models/phi/modeling_phi.py", line 708, in forward
+    attn_outputs, self_attn_weights, present_key_value = self.self_attn(
+                                                         ^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/models/phi/modeling_phi.py", line 599, in forward
+    query_rot, key_rot = apply_rotary_pos_emb(query_rot, key_rot, cos, sin)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/models/phi/modeling_phi.py", line 208, in apply_rotary_pos_emb
+    q_embed = (q * cos) + (rotate_half(q) * sin)
+                           ^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/models/phi/modeling_phi.py", line 182, in rotate_half
+    return torch.cat((-x2, x1), dim=-1)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2053, in _wait
+    (pid, sts) = self._try_wait(0)
+                 ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2011, in _try_wait
+    (pid, sts) = os.waitpid(self.pid, wait_flags)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/lre/home/ioulkadda/adversarial/dpo/env/bin/accelerate", line 8, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/accelerate/commands/accelerate_cli.py", line 48, in main
+    args.func(args)
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/accelerate/commands/launch.py", line 1174, in launch_command
+    simple_launcher(args)
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/accelerate/commands/launch.py", line 766, in simple_launcher
+    process.wait()
+  File "/usr/lib/python3.12/subprocess.py", line 1277, in wait
+    self._wait(timeout=sigint_timeout)
+  File "/usr/lib/python3.12/subprocess.py", line 2047, in _wait
+    time.sleep(delay)
+KeyboardInterrupt

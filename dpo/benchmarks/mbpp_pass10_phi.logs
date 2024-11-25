@@ -1,0 +1,61 @@
+The following values were not passed to `accelerate launch` and had defaults used instead:
+	`--num_processes` was set to a value of `1`
+	`--num_machines` was set to a value of `1`
+	`--mixed_precision` was set to a value of `'no'`
+	`--dynamo_backend` was set to a value of `'no'`
+To avoid this warning pass in values for each of the problematic parameters or run `accelerate config`.
+Selected Tasks: ['humanevalplus']
+Loading model in fp32
+Downloading readme:   0%|          | 0.00/551 [00:00<?, ?B/s]Downloading readme: 100%|██████████| 551/551 [00:00<00:00, 4.83kB/s]Downloading readme: 100%|██████████| 551/551 [00:00<00:00, 4.74kB/s]
+Downloading data:   0%|          | 0.00/2.90M [00:00<?, ?B/s]Downloading data: 100%|██████████| 2.90M/2.90M [00:00<00:00, 4.97MB/s]Downloading data: 100%|██████████| 2.90M/2.90M [00:00<00:00, 4.56MB/s]
+Generating test split:   0%|          | 0/164 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 164/164 [00:00<00:00, 290.67 examples/s]Generating test split: 100%|██████████| 164/164 [00:00<00:00, 226.16 examples/s]
+number of problems for this task is 164
+  0%|          | 0/164 [00:00<?, ?it/s]  1%|          | 1/164 [00:19<52:01, 19.15s/it]  1%|          | 2/164 [00:31<40:47, 15.11s/it]  2%|▏         | 3/164 [00:32<23:21,  8.71s/it]  2%|▏         | 4/164 [00:33<15:30,  5.82s/it]  3%|▎         | 5/164 [00:35<11:16,  4.26s/it]  4%|▎         | 6/164 [00:36<08:43,  3.31s/it]  4%|▍         | 7/164 [00:41<09:44,  3.72s/it]  5%|▍         | 8/164 [00:42<07:15,  2.79s/it]  5%|▌         | 9/164 [00:43<06:02,  2.34s/it]  6%|▌         | 10/164 [00:46<06:16,  2.44s/it]  7%|▋         | 11/164 [00:54<10:51,  4.26s/it]  7%|▋         | 12/164 [00:55<08:22,  3.30s/it]  8%|▊         | 13/164 [00:56<06:32,  2.60s/it]  9%|▊         | 14/164 [00:57<05:09,  2.06s/it]  9%|▉         | 15/164 [00:58<04:08,  1.67s/it] 10%|▉         | 16/164 [00:59<03:24,  1.38s/it] 10%|█         | 17/164 [00:59<02:48,  1.15s/it] 11%|█         | 18/164 [01:05<06:11,  2.55s/it] 12%|█▏        | 19/164 [01:06<05:24,  2.24s/it] 12%|█▏        | 20/164 [01:08<04:55,  2.05s/it] 13%|█▎        | 21/164 [01:09<04:20,  1.82s/it] 13%|█▎        | 22/164 [01:11<04:15,  1.80s/it] 14%|█▍        | 23/164 [01:12<03:34,  1.52s/it] 15%|█▍        | 24/164 [01:12<02:43,  1.17s/it] 15%|█▌        | 25/164 [01:13<02:34,  1.11s/it] 16%|█▌        | 26/164 [01:16<03:32,  1.54s/it] 16%|█▋        | 27/164 [01:17<03:11,  1.40s/it] 17%|█▋        | 28/164 [01:18<02:47,  1.23s/it] 18%|█▊        | 29/164 [01:18<02:16,  1.01s/it] 18%|█▊        | 30/164 [01:19<02:08,  1.04it/s] 19%|█▉        | 31/164 [01:20<01:59,  1.12it/s] 20%|█▉        | 32/164 [01:23<03:18,  1.50s/it] 20%|██        | 33/164 [01:35<10:11,  4.67s/it] 21%|██        | 34/164 [01:38<09:23,  4.33s/it] 21%|██▏       | 35/164 [01:39<06:48,  3.17s/it] 22%|██▏       | 36/164 [01:39<05:01,  2.36s/it] 23%|██▎       | 37/164 [01:41<04:16,  2.02s/it] 23%|██▎       | 38/164 [01:44<05:19,  2.54s/it] 24%|██▍       | 39/164 [01:49<06:35,  3.17s/it] 24%|██▍       | 40/164 [01:54<07:58,  3.86s/it] 25%|██▌       | 41/164 [01:58<07:42,  3.76s/it] 26%|██▌       | 42/164 [02:13<14:40,  7.22s/it] 26%|██▌       | 43/164 [02:14<10:35,  5.25s/it] 27%|██▋       | 44/164 [02:16<08:41,  4.35s/it] 27%|██▋       | 45/164 [02:19<08:02,  4.06s/it] 28%|██▊       | 46/164 [02:20<05:49,  2.96s/it] 29%|██▊       | 47/164 [02:23<05:48,  2.98s/it] 29%|██▉       | 48/164 [02:25<05:02,  2.61s/it] 30%|██▉       | 49/164 [02:25<03:51,  2.01s/it] 30%|███       | 50/164 [02:28<04:29,  2.36s/it] 31%|███       | 51/164 [02:30<03:51,  2.05s/it] 32%|███▏      | 52/164 [02:32<03:49,  2.05s/it] 32%|███▏      | 53/164 [02:32<02:59,  1.62s/it] 33%|███▎      | 54/164 [02:33<02:15,  1.23s/it] 34%|███▎      | 55/164 [02:34<02:08,  1.18s/it] 34%|███▍      | 56/164 [02:35<02:09,  1.20s/it] 35%|███▍      | 57/164 [02:38<03:04,  1.73s/it] 35%|███▌      | 58/164 [02:40<03:06,  1.76s/it] 36%|███▌      | 59/164 [02:41<02:34,  1.47s/it] 37%|███▋      | 60/164 [02:43<03:14,  1.87s/it] 37%|███▋      | 61/164 [02:44<02:37,  1.53s/it] 38%|███▊      | 62/164 [02:48<04:00,  2.36s/it] 38%|███▊      | 63/164 [02:50<03:21,  1.99s/it] 39%|███▉      | 64/164 [02:53<03:58,  2.39s/it] 40%|███▉      | 65/164 [02:55<03:36,  2.19s/it] 40%|████      | 66/164 [02:56<03:20,  2.05s/it] 41%|████      | 67/164 [02:57<02:45,  1.70s/it] 41%|████▏     | 68/164 [03:11<08:34,  5.36s/it] 42%|████▏     | 69/164 [03:21<10:37,  6.71s/it] 43%|████▎     | 70/164 [03:27<10:05,  6.44s/it] 43%|████▎     | 71/164 [03:31<08:55,  5.76s/it] 44%|████▍     | 72/164 [03:35<07:52,  5.13s/it] 45%|████▍     | 73/164 [03:48<11:21,  7.49s/it] 45%|████▌     | 74/164 [03:53<10:22,  6.91s/it] 46%|████▌     | 75/164 [03:57<08:56,  6.03s/it] 46%|████▋     | 76/164 [04:03<08:33,  5.84s/it] 46%|████▋     | 76/164 [04:14<04:54,  3.34s/it]
+Traceback (most recent call last):
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/main.py", line 414, in <module>
+    main()
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/main.py", line 398, in main
+    results[task] = evaluator.evaluate(
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/bigcode_eval/evaluator.py", line 95, in evaluate
+    generations, references = self.generate_text(task_name, intermediate_generations=intermediate_generations)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/bigcode_eval/evaluator.py", line 69, in generate_text
+    generations = parallel_generations(
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/bigcode_eval/generation.py", line 141, in parallel_generations
+    generations = complete_code(
+                  ^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/bigcode-evaluation-harness/bigcode_eval/utils.py", line 303, in complete_code
+    generated_tokens = model.generate(
+                       ^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/generation/utils.py", line 2215, in generate
+    result = self._sample(
+             ^^^^^^^^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/transformers/generation/utils.py", line 3249, in _sample
+    next_tokens = torch.multinomial(probs, num_samples=1).squeeze(1)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/lre/home/ioulkadda/adversarial/dpo/env/bin/accelerate", line 8, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/accelerate/commands/accelerate_cli.py", line 48, in main
+    args.func(args)
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/accelerate/commands/launch.py", line 1174, in launch_command
+    simple_launcher(args)
+  File "/lre/home/ioulkadda/adversarial/dpo/env/lib/python3.12/site-packages/accelerate/commands/launch.py", line 766, in simple_launcher
+    process.wait()
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2053, in _wait
+    (pid, sts) = self._try_wait(0)
+                 ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2011, in _try_wait
+    (pid, sts) = os.waitpid(self.pid, wait_flags)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
