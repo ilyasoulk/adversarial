@@ -14,3 +14,5 @@ huggingface_hub==0.25.1
 wandb==0.18.1
 cohere==5.11.0
 sentencepiece==0.2.0
+datasketch==1.6.5
+
